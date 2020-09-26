@@ -509,3 +509,5 @@ FodyWeavers.xsd
 
 # Local History for Visual Studio Code
 .history/
+FQCS.ColorDetection/data
+FQCS.ColorDetection/unlabeled_data

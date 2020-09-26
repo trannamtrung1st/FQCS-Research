@@ -1,0 +1,11 @@
+Cach 1: cv2.inRange()
+- doi hoi user phai chinh nhung mau tuong ung
+- khong detect duoc qua nhieu mau anh huong performance
+- De bi nhieu moi nhung vung mau giong nhau nhung vi tri khac nhau
+- Kho so sanh do tuong xung
+- kho su dung.
+------------
+Cach 2: rotate --> phan tung vung (10x10)(5x5)--> so sanh mau
+co the preprocess, blur de bot noise...
+dung PSNR, SSIM opencv de check similarity
+-------------
