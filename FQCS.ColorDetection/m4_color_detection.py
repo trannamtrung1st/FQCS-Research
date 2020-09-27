@@ -23,25 +23,25 @@ all_color_range = np.array([
     # ([105, 255*0.8, 255*0.1],[115, 255*0.9, 255*0.9]),#dark_blue
     # ([105, 255*0.9, 255*0.1],[115, 255*1, 255*0.9]),#dark_blue
     ([15, 255*0.1, 255*0.1],[25, 255*0.2, 255*0.9]),#yellow
-    ([15, 255*0.2, 255*0.1],[25, 255*0.3, 255*0.9]),#yellow
-    ([15, 255*0.3, 255*0.1],[25, 255*0.4, 255*0.9]),#yellow
-    ([15, 255*0.4, 255*0.1],[25, 255*0.5, 255*0.9]),#yellow
-    ([15, 255*0.5, 255*0.1],[25, 255*0.6, 255*0.9]),#yellow
-    ([15, 255*0.6, 255*0.1],[25, 255*0.7, 255*0.9]),#yellow
-    ([15, 255*0.7, 255*0.1],[25, 255*0.8, 255*0.9]),#yellow
-    ([15, 255*0.8, 255*0.1],[25, 255*0.9, 255*0.9]),#yellow
-    ([15, 255*0.9, 255*0.1],[25, 255*1, 255*0.9]),#yellow
+    ([15, 255*0.1, 255*0.1],[25, 255*0.3, 255*0.9]),#yellow
+    ([15, 255*0.1, 255*0.1],[25, 255*0.4, 255*0.9]),#yellow
+    ([15, 255*0.1, 255*0.1],[25, 255*0.5, 255*0.9]),#yellow
+    ([15, 255*0.1, 255*0.1],[25, 255*0.6, 255*0.9]),#yellow
+    ([15, 255*0.1, 255*0.1],[25, 255*0.7, 255*0.9]),#yellow
+    ([15, 255*0.1, 255*0.1],[25, 255*0.8, 255*0.9]),#yellow
+    ([15, 255*0.1, 255*0.1],[25, 255*0.9, 255*0.9]),#yellow
+    ([15, 255*0.1, 255*0.1],[25, 255*1, 255*0.9]),#yellow
 ])
 
 
-for i in range(len(all_color_range)):
-    color_range = np.array([all_color_range[i]])
+for count in range(len(all_color_range)):
+    color_range = np.array([all_color_range[count]])
 
     # Reading the video from the 
     # webcam in image frames 
-    imageFrame = cv2.imread("test-diff-2.jpg")
+    imageFrame = cv2.imread("test-diff-1.jpg")
     imageFrame = cv2.resize(imageFrame, (edge, edge))
-    imageFrame = cv2.blur(imageFrame, (10, 10))
+    imageFrame = cv2.blur(imageFrame, (25, 25))
     # imageFrame = cv2.fastNlMeansDenoisingColoredMulti(imageFrame,None,10,10,7,21)
 
     # Convert the imageFrame in  
@@ -78,7 +78,6 @@ for i in range(len(all_color_range)):
                 #             cv2.FONT_HERSHEY_SIMPLEX,  
                 #             0.5, (0, 0, 0)) 
 
-
-    cv2.namedWindow("Test")
-    cv2.imshow("Test",imageFrame)
+    cv2.destroyAllWindows()
+    cv2.imshow("Test " + str(count),imageFrame)
     cv2.waitKey(100000)
