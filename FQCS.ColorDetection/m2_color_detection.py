@@ -92,18 +92,24 @@ def hist_diff(i1, i2, thresh):
 # increase mean decrease sensitive ... (manual test)
 # C1 = 6.5025
 # C2 = 58.5225
-C1 = 6.5025*3
-C2 = 58.5225*3
+C1 = 6.5025/3
+C2 = 58.5225/3
 
 psnrTriggerValue = 40
 img_size = (32, 64)
-blur_val = 0.1
-left = cv2.imread("d_left_1.jpg")
+blur_val = 0.05
+left = cv2.imread("d_left_3.jpg")
 left = cv2.cvtColor(left, cv2.COLOR_BGR2RGB)
-left = change_contrast_and_brightness(left, 1, 10)
-right = cv2.imread("d_right_1.jpg")
-right = change_contrast_and_brightness(right, 1, 10)
+right = cv2.imread("d_right_3.jpg")
 right = cv2.cvtColor(right, cv2.COLOR_BGR2RGB)
+
+fig,axs = plt.subplots(1, 2)
+axs[0].imshow(left)
+axs[1].imshow(right)
+plt.show()
+
+right = change_contrast_and_brightness(right, 1, -150)
+left = change_contrast_and_brightness(left, 1, -150)
 
 # SEGMENT MATRIX
 # matrix = (2, 2)
@@ -112,13 +118,13 @@ matrix = (4, 4)
 
 # BIASES MATRIX
 biases = np.array([
-    [0.65, 1, 1, 0.1],
-    [0.65, 0.75, 0.75, 0.1],
+    [0.9, 1.1, 1, 0.8],
+    [1, 0.9, 0.9, 0.8],
     [0.65, 0.65, 0.65, 0.65],
-    [0.65, 1.1, 1.1, 0.1],
+    [0.1, 1.1, 1.1, 0.1],
 ])
 
-min_similarity = 0.75
+min_similarity = 0.8
 # -------------------------------------------
 
 fig,axs = plt.subplots(1, 2)

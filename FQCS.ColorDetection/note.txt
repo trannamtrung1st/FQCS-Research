@@ -8,6 +8,7 @@ Cach 1: cv2.inRange()
 Cach 2: rotate --> phan tung vung (10x10)(5x5)--> so sanh mau
 co the preprocess, blur de bot noise...
 dung PSNR, SSIM opencv de check similarity
+----> Cai tien = cach chinh cho tung o do user chon
 -------------
 cach 3 (up lv cach 1): chia phan nhu cach 2 --> cv inrange tu nho toi lon. neu nho ma phat hien mau tuong dong thi oke.
 con range qua lon moi thay tuong dong => khac mau
