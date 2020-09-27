@@ -98,10 +98,10 @@ C2 = 100
 psnrTriggerValue = 40
 img_size = (32, 64)
 blur_val = 0.05
-left = cv2.imread("d_left_2.jpg")
+left = cv2.imread("d_left_1.jpg")
 left = cv2.cvtColor(left, cv2.COLOR_BGR2RGB)
 left = change_contrast_and_brightness(left, 0.5, 10)
-right = cv2.imread("d_right_2.jpg")
+right = cv2.imread("d_right_1.jpg")
 right = change_contrast_and_brightness(right, 0.5, 10)
 right = cv2.cvtColor(right, cv2.COLOR_BGR2RGB)
 
