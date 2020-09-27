@@ -97,12 +97,12 @@ C2 = 100
 
 psnrTriggerValue = 40
 img_size = (32, 64)
-blur_val = 0.05
+blur_val = 0.07
 left = cv2.imread("d_left_1.jpg")
 left = cv2.cvtColor(left, cv2.COLOR_BGR2RGB)
-left = change_contrast_and_brightness(left, 1, 10)
+left = change_contrast_and_brightness(left, 0.7, 10)
 right = cv2.imread("d_right_1.jpg")
-right = change_contrast_and_brightness(right, 1, 10)
+right = change_contrast_and_brightness(right, 0.7, 10)
 right = cv2.cvtColor(right, cv2.COLOR_BGR2RGB)
 
 # IMAGE SEGMENT MATRIX
@@ -123,7 +123,7 @@ roi = np.array([
     ((22, 6, 28, 15), 1),
 ])
 
-min_similarity = 0.8
+min_similarity = 0.75
 # -------------------------------------
 
 fig,axs = plt.subplots(1, 2)
@@ -197,9 +197,10 @@ for i in range(len(roi)):
                                                 round(mssimv[2] * 100, 2)))
 
     fig,axs = plt.subplots(1, 2)
-    mean = np.mean(mssimv[:3])
+    mssimv = mssimv[:3]
+    mean = np.mean(mssimv)
     print("Mean", mean)
-    if mssimv is not None and mean<min_similarity:
+    if mssimv is not None and mssimv[mssimv<min_similarity].any():
         plt.title("Different")
     axs[0].imshow(sub_left)
     axs[1].imshow(sub_right)

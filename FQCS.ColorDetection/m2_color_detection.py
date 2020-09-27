@@ -41,11 +41,11 @@ def getPSNR(I1, I2):
 # [get-psnr]
 # [get-mssim]
 def getMSSISM(i1, i2):
-    # increase mean decrease sensitive ... (manual test)
-    # C1 = 6.5025
-    # C2 = 58.5225
-    C1 = 30
-    C2 = 100
+    # # increase mean decrease sensitive ... (manual test)
+    # # C1 = 6.5025
+    # # C2 = 58.5225
+    # C1 = 30
+    # C2 = 100
     # INITS
     I1 = np.float32(i1) # cannot calculate on one byte large values
     I2 = np.float32(i2)
@@ -88,6 +88,13 @@ def hist_diff(i1, i2, thresh):
     dist_b = hist_left_b-hist_right_b
     print("Dist:",dist_r[dist_r>thresh].any(),dist_g[dist_g>thresh].any(),dist_b[dist_b>thresh].any(), thresh)
 
+# -------------- PARAM ---------------------
+# increase mean decrease sensitive ... (manual test)
+# C1 = 6.5025
+# C2 = 58.5225
+C1 = 30
+C2 = 100
+
 psnrTriggerValue = 40
 img_size = (32, 64)
 blur_val = 0.05
@@ -97,6 +104,22 @@ left = change_contrast_and_brightness(left, 0.5, 10)
 right = cv2.imread("d_right_2.jpg")
 right = change_contrast_and_brightness(right, 0.5, 10)
 right = cv2.cvtColor(right, cv2.COLOR_BGR2RGB)
+
+# SEGMENT MATRIX
+# matrix = (2, 2)
+matrix = (4, 4)
+# matrix = (8, 8)
+
+# BIASES MATRIX
+biases = np.array([
+    [0.9, 1, 1, 0.1],
+    [0.65, 1, 1, 0.1],
+    [0.65, 0.65, 0.65, 0.65],
+    [0.65, 1.2, 1.2, 0.1],
+])
+
+min_similarity = 0.75
+# -------------------------------------------
 
 fig,axs = plt.subplots(1, 2)
 axs[0].imshow(left)
@@ -119,18 +142,6 @@ fig,axs = plt.subplots(1, 2)
 axs[0].imshow(left)
 axs[1].imshow(right)
 plt.show()
-
-print(left.shape, right.shape)
-# matrix = (2, 2)
-matrix = (4, 4)
-# matrix = (8, 8)
-
-biases = np.array([
-    [0.9, 1, 1, 0.1],
-    [0.65, 1, 1, 0.1],
-    [0.65, 0.65, 0.65, 0.65],
-    [0.65, 1.2, 1.2, 0.1],
-])
 
 # must be divisible 
 ver_step = left.shape[0]//matrix[0]
@@ -155,7 +166,8 @@ for v in range(matrix[0]):
                                                     round(mssimv[2] * 100, 2)))
 
         fig,axs = plt.subplots(1, 2)
-        if mssimv is not None and mssimv[mssimv<0.75].any():
+        mssimv = None if mssimv is None else mssimv[:3]
+        if mssimv is not None and mssimv[mssimv<min_similarity].any():
             plt.title("Different")
         axs[0].imshow(sub_left)
         axs[1].imshow(sub_right)
