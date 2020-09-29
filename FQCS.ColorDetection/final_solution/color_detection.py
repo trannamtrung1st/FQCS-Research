@@ -1,5 +1,6 @@
 import numpy as np 
 import cv2 
+import matplotlib.pyplot as plt
 
 def change_contrast_and_brightness(image, alpha, beta):
     new_image = np.zeros(image.shape, image.dtype)
@@ -82,6 +83,13 @@ def find_diff(test, true, matrix, ver_step, hor_step, biases,C1,C2,psnrTriggerVa
             mssimv = None if mssimv is None else mssimv[:3]
             has_diff = 1 if mssimv is not None and mssimv[mssimv<min_similarity].any() else 0
             results[v,h] = has_diff
+            
+            # fig,axs = plt.subplots(1, 2)
+            # if has_diff:
+            #     plt.title("Different")
+            # axs[0].imshow(sub_test)
+            # axs[1].imshow(sub_true)
+            # plt.show()   
 
     has_diff = results[results==1].any()
     return results, has_diff
