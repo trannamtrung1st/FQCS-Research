@@ -14,3 +14,9 @@ cach 3 (up lv cach 1): chia phan nhu cach 2 --> cv inrange tu nho toi lon. neu n
 con range qua lon moi thay tuong dong => khac mau
 kho real time
 van phuc tap ve viec chon range mau
+
+------------
+box feature:
+line nhanh cham vv...
+lech ...
+...

@@ -99,14 +99,21 @@ psnrTriggerValue = 40
 img_size = (32, 64)
 blur_val = 0.05
 left = cv2.imread("d_left_3.jpg")
-left = cv2.cvtColor(left, cv2.COLOR_BGR2RGB)
+left = cv2.cvtColor(left, cv2.COLOR_BGR2HSV)
 right = cv2.imread("d_right_3.jpg")
-right = cv2.cvtColor(right, cv2.COLOR_BGR2RGB)
+right = cv2.cvtColor(right, cv2.COLOR_BGR2HSV)
+left[:,:,1]*=3
+right[:,:,1]*=3
+
+left = cv2.cvtColor(left, cv2.COLOR_HSV2RGB)
+right = cv2.cvtColor(right, cv2.COLOR_HSV2RGB)
 
 fig,axs = plt.subplots(1, 2)
 axs[0].imshow(left)
 axs[1].imshow(right)
 plt.show()
+
+
 
 right = change_contrast_and_brightness(right, 1, -150)
 left = change_contrast_and_brightness(left, 1, -150)
