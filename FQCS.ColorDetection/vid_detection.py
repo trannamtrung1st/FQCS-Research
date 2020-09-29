@@ -148,6 +148,8 @@ left, right = run()
 left = cv2.rotate(left, cv2.ROTATE_90_CLOCKWISE)
 right = cv2.rotate(right, cv2.ROTATE_90_CLOCKWISE)
 right = cv2.flip(right, 1)
+# cv2.imwrite("final_left.jpg", left)
+# cv2.imwrite("final_right.jpg", right)
 
 # COLOR_DETECTION
 from final_solution import color_detection as cd
