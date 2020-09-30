@@ -152,10 +152,11 @@ right = cv2.flip(right, 1)
 # cv2.imwrite("final_right.jpg", right)
 
 # COLOR_DETECTION
-from final_solution import color_detection as cd
+import color_detection as cd
 import numpy as np 
 import cv2 
 import matplotlib.pyplot as plt
+import shape_rotation as rot
 
 # -------------- PARAM ---------------------
 # increase mean decrease sensitive ... (manual test)
@@ -187,13 +188,24 @@ sat_adj = 1
 
 min_similarity = 0.8
 # -------------------------------------------
+def match_rot(img, true_img):
+    img = cv2.resize(img, (true_img.shape[1], true_img.shape[0]))
+    min_deg, min_diff = rot.match_rotation(img, true_img)
+    if (min_deg is not None):
+        img = rot.rotate_image(img, min_deg)
+    return img
+
 true_left = cv2.imread("final_left.jpg")
 true_right = cv2.imread("final_right.jpg")
+left = match_rot(left, true_left)
+right = match_rot(right, true_right)
 pre_true_left = cd.preprocess(true_left, img_size, blur_val, alpha_l, beta_l, sat_adj)
 pre_true_right = cd.preprocess(true_right, img_size, blur_val, alpha_r, beta_r, sat_adj)
+pre_left = cd.preprocess(left, img_size, blur_val, alpha_l, beta_l, sat_adj)
+pre_right = cd.preprocess(right, img_size, blur_val, alpha_r, beta_r, sat_adj)
 
-left_results, left_has_diff, right_results, right_has_diff = cd.detect_color_difference(left, right, pre_true_left, pre_true_right,
-    biases, C1, C2, psnrTriggerValue, img_size, blur_val, alpha_r,beta_r,alpha_l,beta_l, sat_adj, matrix, min_similarity)
+left_results, left_has_diff, right_results, right_has_diff = cd.detect_color_difference(pre_left, pre_right, pre_true_left, pre_true_right,
+    biases, C1, C2, psnrTriggerValue, matrix, min_similarity)
 
 fig,axs = plt.subplots(1, 2)
 if (left_has_diff):

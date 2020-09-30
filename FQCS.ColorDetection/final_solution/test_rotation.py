@@ -2,9 +2,9 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 import os
-import rotation as r
+import shape_rotation as r
 
-os.chdir("shape_matching")
+os.chdir("final_solution")
 left = cv2.imread("left.jpg")
 left_true = cv2.imread("left_true.jpg")
 min_deg, min_diff = r.match_rotation(left, left_true)

@@ -94,15 +94,11 @@ def find_diff(test, true, matrix, ver_step, hor_step, biases,C1,C2,psnrTriggerVa
     has_diff = results[results==1].any()
     return results, has_diff
 
-def detect_color_difference(test_left, test_right, true_left, true_right, 
+def detect_color_difference(left, right, true_left, true_right, 
     biases = None, C1=6.5025,
-    C2=58.5225,psnrTriggerValue = 40,img_size = (32, 64),
-    blur_val = 0.05, alpha_r=1, beta_r=-150, alpha_l=1, beta_l=-150,
-    sat_adj=2,
+    C2=58.5225,psnrTriggerValue = 40,
     matrix = (4, 4),min_similarity = 0.8):
     # START
-    right = preprocess(test_right, img_size, blur_val, alpha_r, beta_r, sat_adj)
-    left = preprocess(test_left, img_size, blur_val, alpha_l, beta_l, sat_adj)
     if biases is None:
         biases = np.ones(matrix)
     # must be divisible 
