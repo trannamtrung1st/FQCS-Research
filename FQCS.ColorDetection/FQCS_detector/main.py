@@ -81,7 +81,7 @@ while not found:
                 [0.65, 1, 1, 0.65],
                 [0.1, 1.1, 1.1, 0.1],
             ])
-            sat_adj = 1
+            sat_adj = 2
             min_similarity = 0.8
 
             # output

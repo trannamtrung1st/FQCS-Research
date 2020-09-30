@@ -9,13 +9,13 @@ from imutils import perspective
 class FQCSDetector:
 
     def preprocess_for_cd(self, img, img_size = (32, 64),blur_val = 0.05, alpha=1, beta=-150, sat_adj=2):
-        img = helper.change_contrast_and_brightness(img, alpha, beta)
-        img = cv2.blur(img, (round(img.shape[0] * blur_val),round(img.shape[1] * blur_val)))
-        img = cv2.resize(img, img_size)
         if (sat_adj!=1):
             img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
             img[:,:,1]*=sat_adj
             img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
+        img = helper.change_contrast_and_brightness(img, alpha, beta)
+        img = cv2.blur(img, (round(img.shape[0] * blur_val),round(img.shape[1] * blur_val)))
+        img = cv2.resize(img, img_size)
         return img
 
     def find_color_diff(self, test, true, matrix, ver_step, hor_step, biases,C1,C2,psnrTriggerValue,min_similarity):
