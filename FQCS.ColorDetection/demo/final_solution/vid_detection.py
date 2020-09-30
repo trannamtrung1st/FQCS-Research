@@ -18,7 +18,7 @@ threshold1 = 40  # canny control
 threshold2 = 100  # canny control
 kernel = np.ones((5, 5), np.uint8)  # init
 
-cap = cv2.VideoCapture("1.mp4")
+cap = cv2.VideoCapture("demo/1.mp4")
 cap.set(cv2.CAP_PROP_POS_FRAMES, 1700)
 
 def run():
@@ -61,7 +61,7 @@ def run():
         cnts = imutils.grab_contours(cnts)
         cnts = sorted(cnts, key=lambda c: cv2.contourArea(c), reverse=True)
 
-        image[im_out < 200] = 0
+        image[im_out < 255] = 0
         orig = image.copy()
         for c in cnts[:2]:
             # if the contour is not sufficiently large, ignore it
