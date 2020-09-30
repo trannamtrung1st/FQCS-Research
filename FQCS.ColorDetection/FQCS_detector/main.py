@@ -65,7 +65,7 @@ while not found:
             C2 = 58.5225/3
             psnrTriggerValue = 40
             img_size = (32, 64)
-            blur_val = 0.07
+            blur_val = 0.03
             alpha_r, alpha_l = 1, 1
             beta_r, beta_l = -150, -150
 
