@@ -17,7 +17,7 @@ true_right_path = "true_right.jpg"
 os.chdir("FQCS_detector")
 uri = "1.mp4"
 cap = cv2.VideoCapture(uri)
-cap.set(cv2.CAP_PROP_POS_FRAMES, 1700)
+cap.set(cv2.CAP_PROP_POS_FRAMES, 1100)
 
 # start
 detector = FQCSDetector()
@@ -46,7 +46,9 @@ while not found:
         # output
         fig,axs = plt.subplots(1, 2)
         axs[0].imshow(left)
+        axs[0].set_title("Left detect")
         axs[1].imshow(right)
+        axs[1].set_title("Right detect")
         plt.show()
 
         left = cv2.flip(left, 1)
@@ -87,11 +89,15 @@ while not found:
             # output
             fig,axs = plt.subplots(1, 2)
             axs[0].imshow(left)
+            axs[0].set_title("Left detect")
             axs[1].imshow(true_left)
+            axs[1].set_title("Left sample")
             plt.show()
             fig,axs = plt.subplots(1, 2)
             axs[0].imshow(right)
+            axs[0].set_title("Right detect")
             axs[1].imshow(true_right)
+            axs[1].set_title("Right sample")
             plt.show()
 
             # start
@@ -101,11 +107,15 @@ while not found:
             # output
             fig,axs = plt.subplots(1, 2)
             axs[0].imshow(left)
+            axs[0].set_title("Left rotated")
             axs[1].imshow(true_left)
+            axs[1].set_title("Left sample")
             plt.show()
             fig,axs = plt.subplots(1, 2)
             axs[0].imshow(right)
+            axs[0].set_title("Right rotated")
             axs[1].imshow(true_right)
+            axs[1].set_title("Right sample")
             plt.show()
 
             pre_true_left = detector.preprocess_for_cd(true_left, img_size, blur_val, alpha_l, beta_l, sat_adj)
