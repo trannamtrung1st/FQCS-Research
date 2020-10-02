@@ -76,21 +76,21 @@ class FQCSDetector:
         edged = cv2.Canny(enhanced, canny_threshold1, canny_threshold2)
         edged = cv2.dilate(edged, None, iterations=1)
         edged = cv2.erode(edged, None, iterations=1)
+        h, w = image.shape[:2]
 
-        th, im_th = cv2.threshold(edged, color_threshold, color_max_val, cv2.THRESH_BINARY)
-        im_floodfill = im_th.copy()
-        h, w = im_th.shape[:2]
-        mask = np.zeros((h+2, w+2), np.uint8)
-        cv2.floodFill(im_floodfill, mask, (0,0), 255)
-        im_floodfill_inv = cv2.bitwise_not(im_floodfill)
-        im_out = im_th | im_floodfill_inv
+        # th, im_th = cv2.threshold(edged, color_threshold, color_max_val, cv2.THRESH_BINARY)
+        # im_floodfill = im_th.copy()
+        # mask = np.zeros((h+2, w+2), np.uint8)
+        # cv2.floodFill(im_floodfill, mask, (0,0), 255)
+        # im_floodfill_inv = cv2.bitwise_not(im_floodfill)
+        # im_out = im_th | im_floodfill_inv
 
         cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL,
                                 cv2.CHAIN_APPROX_SIMPLE)
         cnts = imutils.grab_contours(cnts)
         cnts = sorted(cnts, key=lambda c: cv2.contourArea(c), reverse=True)
 
-        image[im_out < 200] = 0
+        # image[im_out < 200] = 0
         orig = image.copy()
         min_x,max_x = w,0
         for c in cnts[:2]:
