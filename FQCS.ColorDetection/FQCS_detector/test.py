@@ -1,39 +1,31 @@
-import cv2
+from __future__ import print_function
+import cv2 as cv
 import numpy as np
-from matplotlib import pyplot as plt
 import os
 
 os.chdir("FQCS_detector")
-img = cv2.imread('true_right.jpg')
-template = cv2.imread('true_right_1.jpg')
-h, w, _ = template.shape
-
-# All the 6 methods for comparison in a list
-methods = ['cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR',
-            'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED']
-
-for meth in methods:
-    img = img.copy()
-    method = eval(meth)
-
-    # Apply template Matching
-    res = cv2.matchTemplate(img,template,method)
-    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
-    print(min_val, max_val)
-
-    # If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
-    if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
-        top_left = min_loc
-    else:
-        top_left = max_loc
-    bottom_right = (top_left[0] + w, top_left[1] + h)
-
-    cv2.rectangle(img,top_left, bottom_right, 255, 2)
-
-    plt.subplot(121),plt.imshow(res,cmap = 'gray')
-    plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
-    plt.subplot(122),plt.imshow(img,cmap = 'gray')
-    plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
-    plt.suptitle(meth)
-
-    plt.show()
+img1 = cv.imread("true_right_1.jpg")
+img2 = cv.imread("true_right.jpg")
+if img1 is None or img2 is None:
+    print('Could not open or find the images!')
+    exit(0)
+#-- Step 1: Detect the keypoints using SURF Detector, compute the descriptors
+detector = cv.SIFT_create(contrastThreshold=-0.4)
+keypoints1, descriptors1 = detector.detectAndCompute(img1, None)
+keypoints2, descriptors2 = detector.detectAndCompute(img2, None)
+#-- Step 2: Matching descriptor vectors with a FLANN based matcher
+# Since SURF is a floating-point descriptor NORM_L2 is used
+matcher = cv.FlannBasedMatcher()
+knn_matches = matcher.knnMatch(descriptors1, descriptors2, 2)
+#-- Filter matches using the Lowe's ratio test
+ratio_thresh = 0.7
+good_matches = []
+for m,n in knn_matches:
+    if m.distance < ratio_thresh * n.distance:
+        good_matches.append(m)
+#-- Draw matches
+img_matches = np.empty((max(img1.shape[0], img2.shape[0]), img1.shape[1]+img2.shape[1], 3), dtype=np.uint8)
+cv.drawMatches(img1, keypoints1, img2, keypoints2, good_matches, img_matches, flags=cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+#-- Show detected matches
+cv.imshow('Good Matches', img_matches)
+cv.waitKey()
