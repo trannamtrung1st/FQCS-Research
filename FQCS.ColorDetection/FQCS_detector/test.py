@@ -1,24 +1,39 @@
-import numpy as np 
-import cv2 
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
 import os
-import matplotlib.pyplot as plt
 
 os.chdir("FQCS_detector")
+img = cv2.imread('true_right.jpg')
+template = cv2.imread('true_right_1.jpg')
+h, w, _ = template.shape
 
-left1 = cv2.imread("true_right_1.jpg")
-left2 = cv2.imread("true_right.jpg")
-# left1 = cv2.imread("true_left_1.jpg")
-# left2 = cv2.imread("true_left.jpg")
-w,h,_ = left1.shape
-left2 = cv2.resize(left2, (h,w))
-left1 = cv2.blur(left1, (10, 10))
-left2 = cv2.blur(left2, (10, 10))
-cv2.imshow("test", left1)
-cv2.waitKey(1000000)
-cv2.imshow("test", left2)
-cv2.waitKey(1000000)
+# All the 6 methods for comparison in a list
+methods = ['cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR',
+            'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED']
 
-diff = left1-left2
-diff[diff<0]=0
-cv2.imshow("test", diff)
-cv2.waitKey(1000000)
+for meth in methods:
+    img = img.copy()
+    method = eval(meth)
+
+    # Apply template Matching
+    res = cv2.matchTemplate(img,template,method)
+    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+    print(min_val, max_val)
+
+    # If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
+    if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
+        top_left = min_loc
+    else:
+        top_left = max_loc
+    bottom_right = (top_left[0] + w, top_left[1] + h)
+
+    cv2.rectangle(img,top_left, bottom_right, 255, 2)
+
+    plt.subplot(121),plt.imshow(res,cmap = 'gray')
+    plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
+    plt.subplot(122),plt.imshow(img,cmap = 'gray')
+    plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
+    plt.suptitle(meth)
+
+    plt.show()
