@@ -80,6 +80,9 @@ class FQCSDetector:
         right_results, right_has_diff = self.find_color_diff(right, true_right, matrix, ver_step, hor_step, biases,C1,C2,psnrTriggerValue,min_similarity)
         return left_results, left_has_diff, right_results, right_has_diff
 
+    last_pair = None
+    last_diff = 1e7
+
     def detect_pair_and_size(self, image: np.ndarray, alpha = 1.0,
         beta = 0,canny_threshold1 = 40,canny_threshold2 = 100,
         kernel = (5, 5), sigma_x=0, 
@@ -158,4 +161,19 @@ class FQCSDetector:
         cv2.imshow('detect', orig)
         cv2.waitKey(1)
         
-        return pair if (len(pair) == 2) else None
+        if (len(pair) == 2):
+            left = pair[0][0]
+            right = pair[1][0]
+            right = cv2.flip(right, 1)
+            right = cv2.resize(right, (left.shape[1], left.shape[0]))
+            fig,axs = plt.subplots(1, 2)
+            axs[0].imshow(left)
+            axs[1].imshow(right)
+            plt.show()
+            diff = helper.diff_image(left, right)
+            if (diff < self.last_diff):
+                self.last_diff = diff
+                self.last_pair = pair
+            else:
+                return self.last_pair
+        return None

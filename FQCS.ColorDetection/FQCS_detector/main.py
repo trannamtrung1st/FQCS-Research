@@ -35,7 +35,7 @@ while not found:
     pair = detector.detect_pair_and_size(image=image,
         alpha=alpha,beta=beta,canny_threshold1=threshold1,canny_threshold2=threshold2,
         kernel=kernel,sigma_x=0,color_threshold=0, color_max_val=255,min_area=400,
-        stop_condition=-0)
+        stop_condition=50)
     
     if (pair is not None):
         found = True
