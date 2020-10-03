@@ -65,6 +65,19 @@ def diff_image(test, true):
     dist = np.linalg.norm(diff)
     return dist
 
+def get_hist_hsv(img):
+    hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
+    hist_h = cv2.calcHist([hsv], [0], None, [180], [0, 180])
+    hist_s = cv2.calcHist([hsv], [1], None, [256], [0, 256])
+    hist_v = cv2.calcHist([hsv], [2], None, [256], [0, 256])
+    return hist_h, hist_s, hist_v
+
+def get_hist_bgr(img):
+    hist_b = cv2.calcHist([img], [0], None, [256], [0, 256])
+    hist_g = cv2.calcHist([img], [1], None, [256], [0, 256])
+    hist_r = cv2.calcHist([img], [2], None, [256], [0, 256])
+    return hist_b, hist_g, hist_r
+
 def match_rotation(img, true_img):
     img = cv2.resize(img, (true_img.shape[1], true_img.shape[0]))
     min_deg, min_diff = get_rotation_match(img, true_img)
@@ -73,8 +86,6 @@ def match_rotation(img, true_img):
     return img
 
 def get_rotation_match(test, true):
-    true = true.copy()
-    true[true!=0]=255
     min_diff = diff_image(test, true)
     min_deg = None
     for deg in np.arange(1, 91, 0.1):

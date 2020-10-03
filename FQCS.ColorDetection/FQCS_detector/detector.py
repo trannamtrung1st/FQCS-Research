@@ -19,7 +19,7 @@ class FQCSDetector:
         return img
 
     def find_color_diff(self, test, true, matrix, ver_step, hor_step, biases,C1,C2,psnrTriggerValue,min_similarity):
-        results = np.zeros(matrix)
+        results = np.ones((matrix[0], matrix[1], 3))
         for v in range(matrix[0]):
             for h in range(matrix[1]):
                 sub_test = test[v*ver_step:(v+1)*ver_step, h*hor_step: (h+1)*hor_step]
@@ -36,8 +36,24 @@ class FQCSDetector:
 
                 mssimv = None if mssimv is None else mssimv[:3]
                 has_diff = 1 if mssimv is not None and mssimv[mssimv<min_similarity].any() else 0
-                results[v,h] = has_diff
-                
+                if mssimv is not None:
+                    results[v,h] = mssimv
+
+                test_hist = helper.get_hist_bgr(sub_test)
+                true_hist = helper.get_hist_bgr(sub_true)
+                list_dist = np.zeros((3,))
+                # output
+                for i in range(3):
+                    # fig,axs = plt.subplots(1, 2)
+                    # axs[0].plot(test_hist[i])
+                    # axs[1].plot(true_hist[i])
+                    # plt.show()
+                    dist = np.linalg.norm(test_hist[i]-true_hist[i])
+                    print("Dist", dist)
+                    list_dist[i] = dist
+                max_dist = np.max(list_dist)
+                print("Max", max_dist)
+
                 # output
                 fig,axs = plt.subplots(1, 2)
                 if has_diff:
@@ -46,13 +62,13 @@ class FQCSDetector:
                 axs[1].imshow(sub_true)
                 plt.show()   
 
-        has_diff = results[results==1].any()
-        return results, has_diff
+        ssim_has_diff = results[results<min_similarity].any()
+        return results, ssim_has_diff
 
     def detect_color_difference(self, left, right, true_left, true_right, 
         biases = None, C1=6.5025,
         C2=58.5225,psnrTriggerValue = 40,
-        matrix = (4, 4),min_similarity = 0.8):
+        matrix = (4, 4),min_similarity = 0.6):
         # START
         if biases is None:
             biases = np.ones(matrix)
@@ -62,7 +78,7 @@ class FQCSDetector:
 
         left_results, left_has_diff = self.find_color_diff(left, true_left, matrix, ver_step, hor_step, biases,C1,C2,psnrTriggerValue, min_similarity)
         right_results, right_has_diff = self.find_color_diff(right, true_right, matrix, ver_step, hor_step, biases,C1,C2,psnrTriggerValue,min_similarity)
-        return left_results, left_has_diff, right_results, right_has_diff   
+        return left_results, left_has_diff, right_results, right_has_diff
 
     def detect_pair_and_size(self, image: np.ndarray, alpha = 1.0,
         beta = 0,canny_threshold1 = 40,canny_threshold2 = 100,
