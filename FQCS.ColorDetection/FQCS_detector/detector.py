@@ -26,15 +26,13 @@ class FQCSDetector:
         w,h,_= true.shape
 
         max_dist = w*h
-        amp_thresh = max_dist*amp_thresh
         print("Amp",amp_thresh)
         # output
         for i in range(3):
             dist = np.linalg.norm(test_hist[i]-true_hist[i])
+            if (dist>amp_thresh):
+                dist*=(dist/amp_thresh)**amplify_rate
             list_dist[i] = dist
-        mean = np.mean(list_dist)
-        if (mean>amp_thresh):
-            list_dist*=(mean/amp_thresh)**amplify_rate
         print(list_dist)
         sum_dist = np.sum(list_dist)
         print(sum_dist, max_dist)

@@ -26,7 +26,7 @@ found = False
 while not found:
     _,image = cap.read()
     image = cv2.resize(image, (640,480))
-    image = helper.rotate_image(image, 5)
+    # image = helper.rotate_image(image, 5)
     cv2.imshow("Original", image)
 
     pair = detector.detect_pair_and_size(image=image,
@@ -60,7 +60,7 @@ while not found:
             alpha_r, alpha_l = 1, 1
             beta_r, beta_l = -150, -150
             sat_adj = 2
-            amplify_thresh = 0.045
+            amplify_thresh = 125
             amplify_rate = 20
             max_diff = 0.2
             
