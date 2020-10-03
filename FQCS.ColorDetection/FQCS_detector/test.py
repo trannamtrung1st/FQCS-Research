@@ -5,20 +5,20 @@ import matplotlib.pyplot as plt
 
 os.chdir("FQCS_detector")
 
-def get_hist(uri):
-    img = cv2.imread(uri)
-    hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
-    hist_h = cv2.calcHist([hsv], [0], None, [180], [0, 180])
-    hist_s = cv2.calcHist([hsv], [1], None, [256], [0, 256])
-    hist_v = cv2.calcHist([hsv], [2], None, [256], [0, 256])
-    return hist_h, hist_s, hist_v
+left1 = cv2.imread("true_right_1.jpg")
+left2 = cv2.imread("true_right.jpg")
+# left1 = cv2.imread("true_left_1.jpg")
+# left2 = cv2.imread("true_left.jpg")
+w,h,_ = left1.shape
+left2 = cv2.resize(left2, (h,w))
+left1 = cv2.blur(left1, (10, 10))
+left2 = cv2.blur(left2, (10, 10))
+cv2.imshow("test", left1)
+cv2.waitKey(1000000)
+cv2.imshow("test", left2)
+cv2.waitKey(1000000)
 
-left_hist = get_hist("true_right.jpg")
-right_hist = get_hist("test_right.jpg")
-
-# output
-for i in range(3):
-    fig,axs = plt.subplots(1, 2)
-    axs[0].plot(left_hist[i])
-    axs[1].plot(right_hist[i])
-    plt.show()
+diff = left1-left2
+diff[diff<0]=0
+cv2.imshow("test", diff)
+cv2.waitKey(1000000)
