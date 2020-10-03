@@ -4,13 +4,14 @@ import numpy as np
 import os
 
 os.chdir("FQCS_detector")
-img1 = cv2.imread("true_left.jpg")
+img1 = cv2.imread("true_right.jpg")
+img1 = cv2.flip(img1, 1)
 img2 = cv2.imread("test.jpg")
 if img1 is None or img2 is None:
     print('Could not open or find the images!')
     exit(0)
 #-- Step 1: Detect the keypoints using SURF Detector, compute the descriptors
-detector = cv2.SIFT_create(contrastThreshold=-0.4)
+detector = cv2.SIFT_create(contrastThreshold=0)
 kp1, descriptors1 = detector.detectAndCompute(img1, None)
 kp2, descriptors2 = detector.detectAndCompute(img2, None)
 #-- Step 2: Matching descriptor vectors with a FLANN based matcher
