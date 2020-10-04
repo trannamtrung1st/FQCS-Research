@@ -191,16 +191,19 @@ class FQCSDetector:
         hull = sorted(hull, reverse=True)
         hull = np.array(hull)
         defects = cv2.convexityDefects(cnt,hull)
-        if (defects is None):
+        if (defects is None or len(defects)<2):
             return None, None
         defects = sorted(defects, key= lambda x: x[0][3],reverse=True)
         defects = np.array(defects)
-        fars = np.zeros((2,2), dtype="int")
+        fars = []
         for i in range(2):
             s,e,f,d = defects[i][0]
             far = tuple(cnt[f][0])
             print(far)
-            fars[i]=far
+            fars.append(far)
+        if (fars[0]==fars[1]): 
+            fars = np.array(fars)
+            fars[0][1]-=1
         fars = sorted(fars, key=lambda x: x[1])
 
         p1,p2=helper.extend_line(fars[0],fars[1],1000)
