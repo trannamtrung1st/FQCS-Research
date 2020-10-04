@@ -108,7 +108,7 @@ class FQCSDetector:
         warped = cv2.warpPerspective(img, M, (width, height))
         return warped
 
-    def detect_one_and_size(self, image: np.ndarray, bg_thresh=100, alpha = 1.0,
+    def detect_one_and_size(self, orig_img: np.ndarray, image: np.ndarray, bg_thresh=100, alpha = 1.0,
         beta = 0,canny_threshold1 = 40,canny_threshold2 = 100,
         kernel = (5, 5), sample_area=None):
         # start
@@ -120,8 +120,8 @@ class FQCSDetector:
         orig = image.copy()
         c = cnts[0]
         rect,dimA,dimB,box,tl,tr,br,bl = self.find_cnt_box(c, orig)
-        original = image.copy()
-        warped = self.get_warped_cnt(original, rect, box)
+        original = orig_img.copy()
+        warped = self.get_warped_cnt(orig_img, rect, box)
         return (warped,box,dimA,dimB)
 
     def detect_pair_and_size(self, image: np.ndarray,bg_thresh=100, alpha = 1.0,
@@ -160,12 +160,12 @@ class FQCSDetector:
             if (area>=sample_area*1.25):
                 split_left, split_right = self.split_pair(image)
         if (split_left is not None):
-            left = self.detect_one_and_size(image=split_left,bg_thresh=bg_thresh,
+            left = self.detect_one_and_size(orig_img=image, image=split_left,bg_thresh=bg_thresh,
                 alpha=alpha,beta=beta,canny_threshold1=canny_threshold1,canny_threshold2=canny_threshold2,
                 kernel=kernel,sample_area=sample_area)
             cv2.imshow("Splitted", left[0])
             cv2.waitKey()
-            right = self.detect_one_and_size(image=split_right,bg_thresh=bg_thresh,
+            right = self.detect_one_and_size(orig_img=image, image=split_right,bg_thresh=bg_thresh,
                 alpha=alpha,beta=beta,canny_threshold1=canny_threshold1,canny_threshold2=canny_threshold2,
                 kernel=kernel,sample_area=sample_area)
             cv2.imshow("Splitted", right[0])
