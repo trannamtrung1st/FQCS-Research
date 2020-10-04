@@ -56,9 +56,8 @@ class FQCSDetector:
         right_results, right_has_diff = self.find_color_diff(right, true_right,amp_thresh, supp_thresh,amplify_rate, max_diff)
         return left_results, left_has_diff, right_results, right_has_diff
 
-    def find_countours(self, image, kernel,alpha,beta,canny_threshold1, canny_threshold2):
+    def find_contours(self, image, cr_from, cr_to):
         hsvFrame = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        cr_from, cr_to = (0,0,0), (180, 255*0.5, 255*0.2) 
         mask = cv2.inRange(hsvFrame, cr_from, cr_to)
         
         h,w,_ = image.shape
@@ -111,11 +110,9 @@ class FQCSDetector:
         warped = cv2.warpPerspective(img, M, (width, height))
         return warped
 
-    def detect_one_and_size(self, orig_img: np.ndarray, image: np.ndarray, alpha = 1.0,
-        beta = 0,canny_threshold1 = 40,canny_threshold2 = 100,
-        kernel = (5, 5), sample_area=None):
+    def detect_one_and_size(self, orig_img: np.ndarray, image: np.ndarray, cr_from, cr_to):
         # start
-        cnts = self.find_countours(image, kernel, alpha, beta, canny_threshold1, canny_threshold2)
+        cnts = self.find_contours(image, cr_from, cr_to)
         orig = image.copy()
         c = cnts[0]
         rect,dimA,dimB,box,tl,tr,br,bl = self.find_cnt_box(c, orig)
@@ -123,13 +120,12 @@ class FQCSDetector:
         warped = self.get_warped_cnt(orig_img, rect, box)
         return (warped,box,dimA,dimB)
 
-    def detect_pair_and_size(self, image: np.ndarray, alpha = 1.0,
-        beta = 0,canny_threshold1 = 40,canny_threshold2 = 100,
-        kernel = (5, 5), sample_area=None,stop_condition=0):
+    def detect_pair_and_size(self, image: np.ndarray, cr_from,cr_to, 
+        sample_area=None,stop_condition=0):
         # start
         pair = []
         h, w = image.shape[:2]
-        cnts = self.find_countours(image, kernel, alpha, beta, canny_threshold1, canny_threshold2)
+        cnts = self.find_contours(image, cr_from, cr_to)
         orig = image.copy()
         min_x,max_x = w,0
         min_area = sample_area*0.25 if sample_area is not None else 400
@@ -159,14 +155,10 @@ class FQCSDetector:
             if (area>=sample_area*1.25):
                 split_left, split_right = self.split_pair(image, cnts[0])
         if (split_left is not None):
-            left = self.detect_one_and_size(orig_img=image, image=split_left,
-                alpha=alpha,beta=beta,canny_threshold1=canny_threshold1,canny_threshold2=canny_threshold2,
-                kernel=kernel,sample_area=sample_area)
+            left = self.detect_one_and_size(orig_img=image, image=split_left, cr_from=cr_from, cr_to=cr_to)
             cv2.imshow("Splitted", left[0])
             cv2.waitKey()
-            right = self.detect_one_and_size(orig_img=image, image=split_right,
-                alpha=alpha,beta=beta,canny_threshold1=canny_threshold1,canny_threshold2=canny_threshold2,
-                kernel=kernel,sample_area=sample_area)
+            right = self.detect_one_and_size(orig_img=image, image=split_right, cr_from=cr_from, cr_to=cr_to)
             cv2.imshow("Splitted", right[0])
             cv2.waitKey()
             

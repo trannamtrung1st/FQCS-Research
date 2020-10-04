@@ -56,7 +56,7 @@ class FQCSDetector:
         right_results, right_has_diff = self.find_color_diff(right, true_right,amp_thresh, supp_thresh,amplify_rate, max_diff)
         return left_results, left_has_diff, right_results, right_has_diff
 
-    def find_countours(self, image, bg_thresh, kernel,alpha,beta,canny_threshold1, canny_threshold2):
+    def find_contours(self, image, bg_thresh, kernel,alpha,beta,canny_threshold1, canny_threshold2):
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         ret, thresh = cv2.threshold(gray, bg_thresh, 255,cv2.THRESH_BINARY)
         
@@ -114,7 +114,7 @@ class FQCSDetector:
         im_th = image.copy()
         thr = cv2.threshold(cv2.cvtColor(im_th, cv2.COLOR_BGR2GRAY), bg_thresh, 255, cv2.THRESH_BINARY)[1]
         im_th[thr==0]=0
-        cnts = self.find_countours(im_th,bg_thresh, kernel, alpha, beta, canny_threshold1, canny_threshold2)
+        cnts = self.find_contours(im_th,bg_thresh, kernel, alpha, beta, canny_threshold1, canny_threshold2)
         orig = image.copy()
         c = cnts[0]
         rect,dimA,dimB,box,tl,tr,br,bl = self.find_cnt_box(c, orig)
@@ -128,7 +128,7 @@ class FQCSDetector:
         # start
         pair = []
         h, w = image.shape[:2]
-        cnts = self.find_countours(image,bg_thresh, kernel, alpha, beta, canny_threshold1, canny_threshold2)
+        cnts = self.find_contours(image,bg_thresh, kernel, alpha, beta, canny_threshold1, canny_threshold2)
         orig = image.copy()
         min_x,max_x = w,0
         min_area = sample_area*0.25 if sample_area is not None else 400
