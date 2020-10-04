@@ -22,6 +22,12 @@ cap = cv2.VideoCapture(uri)
 # start
 detector = FQCSDetector()
 
+true_left,true_right,sample_area = None,None,4000
+if os.path.exists(true_left_path):
+    true_left = cv2.imread(true_left_path)
+    true_right = cv2.imread(true_right_path)
+    sample_area = true_left.shape[0]*true_left.shape[1]
+
 found = False
 while not found:
     _,image = cap.read()
@@ -31,7 +37,7 @@ while not found:
 
     pair = detector.detect_pair_and_size(image=image,
         alpha=alpha,beta=beta,canny_threshold1=threshold1,canny_threshold2=threshold2,
-        kernel=kernel,sigma_x=0,color_threshold=0, color_max_val=255,min_area=400,
+        kernel=kernel,sample_area=sample_area,
         stop_condition=0)
     
     if (pair is not None):
@@ -52,9 +58,6 @@ while not found:
             cv2.imwrite(true_left_path, left)
             cv2.imwrite(true_right_path, right)
         else:
-            true_left = cv2.imread(true_left_path)
-            true_right = cv2.imread(true_right_path)
-            
             img_size = (32, 64)
             blur_val = None
             alpha_r, alpha_l = 1, 1

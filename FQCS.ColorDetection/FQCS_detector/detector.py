@@ -56,8 +56,7 @@ class FQCSDetector:
 
     def detect_pair_and_size(self, image: np.ndarray, alpha = 1.0,
         beta = 0,canny_threshold1 = 40,canny_threshold2 = 100,
-        kernel = (5, 5), sigma_x=0, 
-        color_threshold=0, color_max_val=255, min_area=400,stop_condition=0):
+        kernel = (5, 5), sample_area=400,stop_condition=0):
         # start
         pair = []
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -76,7 +75,7 @@ class FQCSDetector:
         orig = image.copy()
         min_x,max_x = w,0
         for c in cnts[:2]:
-            if cv2.contourArea(c) < min_area:
+            if cv2.contourArea(c) < sample_area*0.25:
                 break
             rect = cv2.minAreaRect(c)
             box = cv2.boxPoints(rect)
@@ -120,8 +119,44 @@ class FQCSDetector:
                 warped = cv2.warpPerspective(original, M, (width, height))
                 pair.append((warped,box,dimA,dimB))
             
+            pair = sorted(pair, key=lambda x: x[1][0][0], reverse=True)
+
         # output
         cv2.imshow('detect', orig)
         cv2.waitKey(1)
+        
+        if (len(pair)==2):
+            area = pair[0][2] * pair[0][3]
+            if (area>=sample_area*1.25):
+                split_left, split_right = self.split_pair(image)
+            return pair 
+        elif (len(pair)==1):
+            area = pair[0][2] * pair[0][3]
+            if (area>=sample_area*1.25):
+                split_left, split_right = self.split_pair(image)
+                return pair
+        return None
 
-        return pair if (len(pair) == 2) else None
+    def split_pair(self, img):
+        img_gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+        ret, thresh = cv2.threshold(img_gray, 127, 255,0)
+        contours,hierarchy = cv2.findContours(thresh,2,1)
+        cnt = contours[0]
+        hull = cv2.convexHull(cnt,returnPoints = False)
+        defects = cv2.convexityDefects(cnt,hull)
+        defects = sorted(defects, key= lambda x: x[0][3],reverse=True)
+        defects = np.array(defects)
+        hull = cv2.convexHull(cnt,returnPoints = False)
+        hull = sorted(hull, reverse=True)
+        hull = np.array(hull)
+        defects = cv2.convexityDefects(cnt,hull)
+        defects = sorted(defects, key= lambda x: x[0][3],reverse=True)
+        defects = np.array(defects)
+        fars = np.zeros((2,2), dtype="int")
+        for i in range(2):
+            s,e,f,d = defects[i][0]
+            far = tuple(cnt[f][0])
+            print(far)
+            fars[i]=far
+        
+        return img[:,:fars[0][0],:],img[:,fars[0][0]:,:]
