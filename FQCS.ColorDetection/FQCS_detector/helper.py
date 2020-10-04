@@ -65,6 +65,15 @@ def diff_image(test, true):
     dist = np.linalg.norm(diff)
     return dist
 
+def extend_line(p1,p2,length):
+    len12 = np.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
+    p3,p4 = np.zeros((2,), dtype="int"),np.zeros((2,), dtype="int")
+    p4[0] = p2[0] + (p2[0] - p1[0]) / len12 * length
+    p4[1] = p2[1] + (p2[1] - p1[1]) / len12 * length
+    p3[0] = p1[0] - (p2[0] - p1[0]) / len12 * length
+    p3[1] = p1[1] - (p2[1] - p1[1]) / len12 * length
+    return p3,p4
+
 def get_hist_hsv(img):
     hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
     hist_h = cv2.calcHist([hsv], [0], None, [180], [0, 180])

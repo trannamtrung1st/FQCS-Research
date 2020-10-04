@@ -11,6 +11,7 @@ beta = 0    # brightness control
 threshold1 = 40  # canny control
 threshold2 = 100  # canny control
 kernel = (5, 5)  # init
+bg_thresh = 90
 
 true_left_path = "true_left.jpg"
 true_right_path = "true_right.jpg"
@@ -22,7 +23,7 @@ cap = cv2.VideoCapture(uri)
 # start
 detector = FQCSDetector()
 
-true_left,true_right,sample_area = None,None,4000
+true_left,true_right,sample_area = None,None,None
 if os.path.exists(true_left_path):
     true_left = cv2.imread(true_left_path)
     true_right = cv2.imread(true_right_path)
@@ -36,6 +37,7 @@ while not found:
     cv2.imshow("Original", image)
 
     pair = detector.detect_pair_and_size(image=image,
+        bg_thresh=bg_thresh,
         alpha=alpha,beta=beta,canny_threshold1=threshold1,canny_threshold2=threshold2,
         kernel=kernel,sample_area=sample_area,
         stop_condition=0)
@@ -59,14 +61,14 @@ while not found:
             cv2.imwrite(true_right_path, right)
         else:
             img_size = (32, 64)
-            blur_val = None
+            blur_val = 0.03
             alpha_r, alpha_l = 1, 1
             beta_r, beta_l = -150, -150
-            sat_adj = 2
-            amplify_thresh = 125
+            sat_adj = 5
+            amplify_thresh = 160
             amplify_rate = 20
-            max_diff = 0.2
-            
+            max_diff = 0.25
+
             # output
             fig,axs = plt.subplots(1, 2)
             axs[0].imshow(left)
