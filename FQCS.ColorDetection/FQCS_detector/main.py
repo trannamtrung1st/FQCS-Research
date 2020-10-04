@@ -2,8 +2,8 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 # from detector_edge import FQCSDetector
-# from detector_thresh import FQCSDetector
-from detector_range import FQCSDetector
+from detector_thresh import FQCSDetector
+# from detector_range import FQCSDetector
 import helper
 import os
 
@@ -13,15 +13,16 @@ beta = 0    # brightness control
 threshold1 = 40  # canny control
 threshold2 = 100  # canny control
 kernel = (5, 5)  # init
-bg_thresh = 170
-cr_from,cr_to = (0,0,0), (180, 255*0.3, 255*0.7)
+light_adj_thresh = 65
+bg_thresh = 110
+cr_from,cr_to = (0,0,0), (180, 255*0.7, 255*0.8)
 
 true_left_path = "true_left.jpg"
 true_right_path = "true_right.jpg"
 os.chdir("FQCS_detector")
-uri = "1.mp4"
+uri = "test1.mp4"
 cap = cv2.VideoCapture(uri)
-cap.set(cv2.CAP_PROP_POS_FRAMES, 1100)
+# cap.set(cv2.CAP_PROP_POS_FRAMES, 1100)
 
 # start
 detector = FQCSDetector()
@@ -44,21 +45,21 @@ while not found:
     # pair = detector.detect_pair_and_size(image=image,
     #     alpha=alpha,beta=beta,canny_threshold1=threshold1,canny_threshold2=threshold2,
     #     kernel=kernel,sample_area=sample_area,
-    #     stop_condition=-50,detect_range=(0.2,0.95))
+    #     stop_condition=0,detect_range=(0.2,0.8))
 
     # using thresh
-    # light_adj_val = helper.brightness(image)/127
-    # adj_bg_thresh = bg_thresh * light_adj_val
-    # pair = detector.detect_pair_and_size(image=image,
-    #     bg_thresh=adj_bg_thresh,
-    #     sample_area=sample_area,
-    #     stop_condition=-50,detect_range=(0.2,0.95))
+    light_adj_val = helper.brightness(image)/light_adj_thresh
+    adj_bg_thresh = bg_thresh * light_adj_val
+    pair = detector.detect_pair_and_size(image=image,
+        bg_thresh=adj_bg_thresh,
+        sample_area=sample_area,
+        stop_condition=0,detect_range=(0.2,0.8))
 
     # using range
-    light_adj_val = helper.brightness(image)/127
-    adj_cr_to = (cr_to[0],cr_to[1],cr_to[2]*light_adj_val)
-    pair = detector.detect_pair_and_size(image=image,cr_from=cr_from,
-        cr_to=adj_cr_to,sample_area=sample_area,stop_condition=-50,detect_range=(0.2,0.95))
+    # light_adj_val = helper.brightness(image)/light_adj_thresh
+    # adj_cr_to = (cr_to[0],cr_to[1]*light_adj_val,cr_to[2]*light_adj_val)
+    # pair = detector.detect_pair_and_size(image=image,cr_from=cr_from,
+    #     cr_to=adj_cr_to,sample_area=sample_area,stop_condition=0,detect_range=(0.2,0.8))
     
     if (pair is not None):
         found = True
@@ -84,7 +85,7 @@ while not found:
             beta_r, beta_l = -150, -150
             sat_adj = 2
             supp_thresh = 10
-            amplify_thresh = 90
+            amplify_thresh = 65
             amplify_rate = 10
             max_diff = 0.2
 
