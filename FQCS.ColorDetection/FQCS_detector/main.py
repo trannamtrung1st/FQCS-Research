@@ -11,12 +11,12 @@ beta = 0    # brightness control
 threshold1 = 40  # canny control
 threshold2 = 100  # canny control
 kernel = (5, 5)  # init
-bg_thresh = 70
+bg_thresh = 127
 
 true_left_path = "true_left.jpg"
 true_right_path = "true_right.jpg"
 os.chdir("FQCS_detector")
-uri = "test.mp4"
+uri = "test2.mp4"
 cap = cv2.VideoCapture(uri)
 # cap.set(cv2.CAP_PROP_POS_FRAMES, 1100)
 

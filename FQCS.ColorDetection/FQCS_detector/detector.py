@@ -160,7 +160,7 @@ class FQCSDetector:
         if (sample_area is not None and (len(pair)==2 or len(pair)==1)):
             area = pair[0][2] * pair[0][3]
             if (area>=sample_area*1.25):
-                split_left, split_right = self.split_pair(image)
+                split_left, split_right = self.split_pair(image,cnts[0])
         if (split_left is not None):
             left = self.detect_one_and_size(orig_img=image, image=split_left,bg_thresh=bg_thresh,
                 alpha=alpha,beta=beta,canny_threshold1=canny_threshold1,canny_threshold2=canny_threshold2,
@@ -179,14 +179,8 @@ class FQCSDetector:
 
         return pair if len(pair)==2 else None
 
-    def split_pair(self, img):
+    def split_pair(self, img,cnt):
         h,w,_ = img.shape
-        img_gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-        ret, thresh = cv2.threshold(img_gray, 127, 255,0)
-        contours,hierarchy = cv2.findContours(thresh,2,1)
-        if (len(contours)==0):
-            return None,None
-        cnt = contours[0]
         hull = cv2.convexHull(cnt,returnPoints = False)
         hull = sorted(hull, reverse=True)
         hull = np.array(hull)
@@ -200,6 +194,9 @@ class FQCSDetector:
             s,e,f,d = defects[i][0]
             far = tuple(cnt[f][0])
             print(far)
+            # cv2.circle(img,far,5,[0,0,255],-1)
+            # cv2.imshow('img',img)
+            # cv2.waitKey(0)
             fars.append(far)
         if (fars[0]==fars[1]): 
             fars = np.array(fars)
