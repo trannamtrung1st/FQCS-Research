@@ -74,6 +74,18 @@ def extend_line(p1,p2,length):
     p3[1] = p1[1] - (p2[1] - p1[1]) / len12 * length
     return p3,p4
 
+def brightness(img):
+    # faster
+    return np.mean(img[::2])
+    # slow
+    # if len(img.shape) == 3:
+    #     # Colored RGB or BGR (*Do Not* use HSV images with this function)
+    #     # create brightness with euclidean norm
+    #     return np.average(np.linalg.norm(img, axis=2)) / np.sqrt(3)
+    # else:
+    #     # Grayscale
+    #     return np.average(img)
+
 def get_hist_hsv(img):
     hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
     hist_h = cv2.calcHist([hsv], [0], None, [180], [0, 180])

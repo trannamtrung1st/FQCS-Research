@@ -2,8 +2,8 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 # from detector_edge import FQCSDetector
-from detector_thresh import FQCSDetector
-# from detector_range import FQCSDetector
+# from detector_thresh import FQCSDetector
+from detector_range import FQCSDetector
 import helper
 import os
 
@@ -13,15 +13,15 @@ beta = 0    # brightness control
 threshold1 = 40  # canny control
 threshold2 = 100  # canny control
 kernel = (5, 5)  # init
-bg_thresh = 100
-cr_from,cr_to = (0,0,0), (180, 255*0.5, 255*0.4)
+bg_thresh = 170
+cr_from,cr_to = (0,0,0), (180, 255*0.3, 255*0.7)
 
 true_left_path = "true_left.jpg"
 true_right_path = "true_right.jpg"
 os.chdir("FQCS_detector")
-uri = "test2.mp4"
+uri = "1.mp4"
 cap = cv2.VideoCapture(uri)
-# cap.set(cv2.CAP_PROP_POS_FRAMES, 1100)
+cap.set(cv2.CAP_PROP_POS_FRAMES, 1100)
 
 # start
 detector = FQCSDetector()
@@ -44,17 +44,21 @@ while not found:
     # pair = detector.detect_pair_and_size(image=image,
     #     alpha=alpha,beta=beta,canny_threshold1=threshold1,canny_threshold2=threshold2,
     #     kernel=kernel,sample_area=sample_area,
-    #     stop_condition=0,detect_range=(0.2,0.8))
+    #     stop_condition=-50,detect_range=(0.2,0.95))
 
-    # using thresh 
-    pair = detector.detect_pair_and_size(image=image,
-        bg_thresh=bg_thresh,
-        sample_area=sample_area,
-        stop_condition=0,detect_range=(0.2,0.8))
+    # using thresh
+    # light_adj_val = helper.brightness(image)/127
+    # adj_bg_thresh = bg_thresh * light_adj_val
+    # pair = detector.detect_pair_and_size(image=image,
+    #     bg_thresh=adj_bg_thresh,
+    #     sample_area=sample_area,
+    #     stop_condition=-50,detect_range=(0.2,0.95))
 
     # using range
-    # pair = detector.detect_pair_and_size(image=image,cr_from=cr_from,
-    #     cr_to=cr_to,sample_area=sample_area,stop_condition=0,detect_range=(0.2,0.8))
+    light_adj_val = helper.brightness(image)/127
+    adj_cr_to = (cr_to[0],cr_to[1],cr_to[2]*light_adj_val)
+    pair = detector.detect_pair_and_size(image=image,cr_from=cr_from,
+        cr_to=adj_cr_to,sample_area=sample_area,stop_condition=-50,detect_range=(0.2,0.95))
     
     if (pair is not None):
         found = True
