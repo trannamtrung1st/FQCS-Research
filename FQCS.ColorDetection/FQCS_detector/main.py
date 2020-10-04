@@ -16,7 +16,7 @@ bg_thresh = 90
 true_left_path = "true_left.jpg"
 true_right_path = "true_right.jpg"
 os.chdir("FQCS_detector")
-uri = "test2.mp4"
+uri = "test1.mp4"
 cap = cv2.VideoCapture(uri)
 # cap.set(cv2.CAP_PROP_POS_FRAMES, 1100)
 
@@ -61,13 +61,13 @@ while not found:
             cv2.imwrite(true_right_path, right)
         else:
             img_size = (32, 64)
-            blur_val = 0.03
+            blur_val = 0.05
             alpha_r, alpha_l = 1, 1
             beta_r, beta_l = -150, -150
-            sat_adj = 5
-            amplify_thresh = 150
-            amplify_rate = 20
-            max_diff = 0.25
+            sat_adj = 2
+            amplify_thresh = 90
+            amplify_rate = 10
+            max_diff = 0.2
 
             # output
             fig,axs = plt.subplots(1, 2)
@@ -84,23 +84,6 @@ while not found:
             plt.show()
 
             # start
-            # left = helper.match_rotation(left, true_left)
-            # right = helper.match_rotation(right, true_right)
-
-            # output
-            fig,axs = plt.subplots(1, 2)
-            axs[0].imshow(left)
-            axs[0].set_title("Left rotated")
-            axs[1].imshow(true_left)
-            axs[1].set_title("Left sample")
-            plt.show()
-            fig,axs = plt.subplots(1, 2)
-            axs[0].imshow(right)
-            axs[0].set_title("Right rotated")
-            axs[1].imshow(true_right)
-            axs[1].set_title("Right sample")
-            plt.show()
-
             pre_true_left = detector.preprocess_for_cd(true_left, img_size, blur_val, alpha_l, beta_l, sat_adj)
             pre_true_right = detector.preprocess_for_cd(true_right, img_size, blur_val, alpha_r, beta_r, sat_adj)
             pre_left = detector.preprocess_for_cd(left, img_size, blur_val, alpha_l, beta_l, sat_adj)
