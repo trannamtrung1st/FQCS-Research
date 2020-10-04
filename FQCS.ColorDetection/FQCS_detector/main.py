@@ -1,8 +1,8 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-# from detector_thresh import FQCSDetector
-from detector_edge import FQCSDetector
+# from detector_edge import FQCSDetector
+from detector_thresh import FQCSDetector
 # from detector_range import FQCSDetector
 import helper
 import os
@@ -13,8 +13,8 @@ beta = 0    # brightness control
 threshold1 = 40  # canny control
 threshold2 = 100  # canny control
 kernel = (5, 5)  # init
-bg_thresh = 70
-cr_from,cr_to = (0,0,0), (180, 255*0.5, 255*0.2)
+bg_thresh = 100
+cr_from,cr_to = (0,0,0), (180, 255*0.5, 255*0.4)
 
 true_left_path = "true_left.jpg"
 true_right_path = "true_right.jpg"
@@ -36,21 +36,21 @@ found = False
 while not found:
     _,image = cap.read()
     image = cv2.resize(image, (640,480))
-    image = helper.change_contrast_and_brightness(image, 0.5, 0)
-    image = helper.rotate_image(image, 5)
+    # image = helper.change_contrast_and_brightness(image, 0.5, 0)
+    # image = helper.rotate_image(image, 5)
     cv2.imshow("Original", image)
 
     # using edge 
-    pair = detector.detect_pair_and_size(image=image,
-        alpha=alpha,beta=beta,canny_threshold1=threshold1,canny_threshold2=threshold2,
-        kernel=kernel,sample_area=sample_area,
-        stop_condition=0,detect_range=(0.2,0.8))
+    # pair = detector.detect_pair_and_size(image=image,
+    #     alpha=alpha,beta=beta,canny_threshold1=threshold1,canny_threshold2=threshold2,
+    #     kernel=kernel,sample_area=sample_area,
+    #     stop_condition=0,detect_range=(0.2,0.8))
 
     # using thresh 
-    # pair = detector.detect_pair_and_size(image=image,
-    #     bg_thresh=bg_thresh,
-    #     sample_area=sample_area,
-    #     stop_condition=0,detect_range=(0.2,0.8))
+    pair = detector.detect_pair_and_size(image=image,
+        bg_thresh=bg_thresh,
+        sample_area=sample_area,
+        stop_condition=0,detect_range=(0.2,0.8))
 
     # using range
     # pair = detector.detect_pair_and_size(image=image,cr_from=cr_from,
