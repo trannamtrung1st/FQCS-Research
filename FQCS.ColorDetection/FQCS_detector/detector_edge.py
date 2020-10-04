@@ -79,9 +79,6 @@ class FQCSDetector:
         box = np.array(box, dtype="int")
         box = perspective.order_points(box)
         
-        # output
-        cv2.drawContours(img, [box.astype("int")], -1, (0, 255, 0), 2)
-        
         (tl, tr, br, bl) = box
         (tltrX, tltrY) = helper.midpoint(tl, tr)
         (blbrX, blbrY) = helper.midpoint(bl, br)
@@ -91,13 +88,6 @@ class FQCSDetector:
         dimA = dist.euclidean((tltrX, tltrY), (blbrX, blbrY))
         dimB = dist.euclidean((tlblX, tlblY), (trbrX, trbrY))
 
-        #output
-        cv2.putText(img, "{:.1f}px".format(dimA),
-                    (int(tltrX - 15), int(tltrY - 10)), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.65, (255, 255, 0), 2)
-        cv2.putText(img, "{:.1f}px".format(dimB),
-                    (int(trbrX + 10), int(trbrY)), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.65, (255, 255, 0), 2)
         return rect,dimA,dimB,box,tl,tr,br,bl
 
     def get_warped_cnt(self, img, rect, box):
@@ -128,13 +118,14 @@ class FQCSDetector:
 
     def detect_pair_and_size(self, image: np.ndarray,bg_thresh=100, alpha = 1.0,
         beta = 0,canny_threshold1 = 40,canny_threshold2 = 100,
-        kernel = (5, 5), sample_area=None,stop_condition=0):
+        kernel = (5, 5), sample_area=None,stop_condition=0,detect_range=(0.2,0.8)):
         # start
         pair = []
         h, w = image.shape[:2]
         cnts = self.find_contours(image, kernel, alpha, beta, canny_threshold1, canny_threshold2)
         orig = image.copy()
         min_x,max_x = w,0
+        from_x, to_x = w*detect_range[0],w*detect_range[1]
         min_area = sample_area*0.25 if sample_area is not None else 400
         for c in cnts[:2]:
             if cv2.contourArea(c) < min_area:
@@ -144,13 +135,26 @@ class FQCSDetector:
             cur_max_x = max(tl[0], tr[0], br[0], bl[0])
             min_x = min(cur_min_x, min_x)
             max_x = max(cur_max_x, max_x)
+            if (min_x<from_x or max_x>to_x):
+                break
+
+            # output
+            cv2.drawContours(orig, [box.astype("int")], -1, (0, 255, 0), 2)
+            cv2.putText(orig, "{:.1f}px".format(dimA),
+                        (tl[0], tl[1]), cv2.FONT_HERSHEY_SIMPLEX,
+                        0.65, (255, 255, 0), 2)
+            cv2.putText(orig, "{:.1f}px".format(dimB),
+                        (br[0], br[1]), cv2.FONT_HERSHEY_SIMPLEX,
+                        0.65, (255, 255, 0), 2)
+
             center_val = w-max_x-min_x
             is_center = True if (center_val<=stop_condition) else False
             if (is_center):
                 original = image.copy()
                 warped = self.get_warped_cnt(original, rect, box)
                 pair.append((warped,box,dimA,dimB))
-            pair = sorted(pair, key=lambda x: x[1][0][0], reverse=True)
+        
+        pair = sorted(pair, key=lambda x: x[1][0][0], reverse=True)
 
         # output
         cv2.imshow('detect', orig)
