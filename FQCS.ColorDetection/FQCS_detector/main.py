@@ -65,7 +65,7 @@ while not found:
             alpha_r, alpha_l = 1, 1
             beta_r, beta_l = -150, -150
             sat_adj = 5
-            amplify_thresh = 160
+            amplify_thresh = 150
             amplify_rate = 20
             max_diff = 0.25
 
