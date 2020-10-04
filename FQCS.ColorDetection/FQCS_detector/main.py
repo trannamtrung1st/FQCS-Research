@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-from detector import FQCSDetector
+from detector_thresh import FQCSDetector
 import helper
 import os
 
@@ -31,13 +31,15 @@ if os.path.exists(true_left_path):
 
 found = False
 while not found:
+    cv2.waitKey(30)
     _,image = cap.read()
     image = cv2.resize(image, (640,480))
+    # image = helper.change_contrast_and_brightness(image, 0.5, 0)
     # image = helper.rotate_image(image, 5)
     cv2.imshow("Original", image)
 
     pair = detector.detect_pair_and_size(image=image,
-        bg_thresh=bg_thresh,
+        # bg_thresh=bg_thresh,
         alpha=alpha,beta=beta,canny_threshold1=threshold1,canny_threshold2=threshold2,
         kernel=kernel,sample_area=sample_area,
         stop_condition=0)
