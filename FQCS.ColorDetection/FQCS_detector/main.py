@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-from detector_range import FQCSDetector
+from detector_thresh import FQCSDetector
 import helper
 import os
 
@@ -39,16 +39,21 @@ while not found:
     image = helper.rotate_image(image, 5)
     cv2.imshow("Original", image)
 
-    # using thresh and edge 
+    # using edge 
     # pair = detector.detect_pair_and_size(image=image,
-    #     bg_thresh=bg_thresh,
     #     alpha=alpha,beta=beta,canny_threshold1=threshold1,canny_threshold2=threshold2,
     #     kernel=kernel,sample_area=sample_area,
     #     stop_condition=0)
 
+    # using thresh 
+    pair = detector.detect_pair_and_size(image=image,
+        bg_thresh=bg_thresh,
+        sample_area=sample_area,
+        stop_condition=0)
+
     # using range
-    pair = detector.detect_pair_and_size(image=image,cr_from=cr_from,
-        cr_to=cr_to,sample_area=sample_area,stop_condition=0)
+    # pair = detector.detect_pair_and_size(image=image,cr_from=cr_from,
+    #     cr_to=cr_to,sample_area=sample_area,stop_condition=0)
     
     if (pair is not None):
         found = True
