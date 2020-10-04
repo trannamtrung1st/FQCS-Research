@@ -19,7 +19,7 @@ class FQCSDetector:
         img = cv2.resize(img, img_size)
         return img
 
-    def find_color_diff(self, test, true, amp_thresh, amplify_rate,max_diff):
+    def find_color_diff(self, test, true, amp_thresh,supp_thresh, amplify_rate,max_diff):
         test_hist = helper.get_hist_bgr(test)
         true_hist = helper.get_hist_bgr(true)
         list_dist = np.zeros((3,))
@@ -29,7 +29,9 @@ class FQCSDetector:
         print("Amp",amp_thresh)
         # output
         for i in range(3):
-            dist = np.linalg.norm(test_hist[i]-true_hist[i])
+            diff = np.abs(test_hist[i]-true_hist[i])
+            diff[diff<supp_thresh]=0
+            dist = np.linalg.norm(diff)
             if (dist>amp_thresh):
                 dist*=(dist/amp_thresh)**amplify_rate
             list_dist[i] = dist
@@ -48,10 +50,10 @@ class FQCSDetector:
         return sum_dist, avg>=max_diff
 
     def detect_color_difference(self, left, right, true_left, true_right,
-        amp_thresh = None,amplify_rate=None, max_diff = None):
+        amp_thresh = None,supp_thresh=None,amplify_rate=None, max_diff = None):
         # START
-        left_results, left_has_diff = self.find_color_diff(left, true_left,amp_thresh, amplify_rate,max_diff)
-        right_results, right_has_diff = self.find_color_diff(right, true_right,amp_thresh, amplify_rate, max_diff)
+        left_results, left_has_diff = self.find_color_diff(left, true_left,amp_thresh,supp_thresh, amplify_rate,max_diff)
+        right_results, right_has_diff = self.find_color_diff(right, true_right,amp_thresh, supp_thresh,amplify_rate, max_diff)
         return left_results, left_has_diff, right_results, right_has_diff
 
     def find_countours(self, image, kernel,alpha,beta,canny_threshold1, canny_threshold2):

@@ -65,6 +65,7 @@ while not found:
             alpha_r, alpha_l = 1, 1
             beta_r, beta_l = -150, -150
             sat_adj = 2
+            supp_thresh = 10
             amplify_thresh = 90
             amplify_rate = 10
             max_diff = 0.2
@@ -100,7 +101,7 @@ while not found:
             plt.show()
 
             left_results, left_has_diff, right_results, right_has_diff = detector.detect_color_difference(
-                pre_left, pre_right, pre_true_left, pre_true_right, amplify_thresh, amplify_rate, max_diff)
+                pre_left, pre_right, pre_true_left, pre_true_right, amplify_thresh,supp_thresh, amplify_rate, max_diff)
 
             # output
             fig,axs = plt.subplots(1, 2)
