@@ -32,8 +32,8 @@ class FQCSDetector:
             diff = np.abs(test_hist[i]-true_hist[i])
             diff[diff<supp_thresh]=0
             dist = np.linalg.norm(diff)
-            if (dist>amp_thresh):
-                dist*=(dist/amp_thresh)**amplify_rate
+            if (dist>amp_thresh[i]):
+                dist*=(dist/amp_thresh[i])**amplify_rate
             list_dist[i] = dist
         print(list_dist)
         sum_dist = np.sum(list_dist)

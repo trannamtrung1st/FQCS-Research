@@ -17,10 +17,21 @@ light_adj_thresh = 65
 bg_thresh = 110
 cr_from,cr_to = (0,0,0), (180, 255*0.7, 255*0.8)
 
+# color detection
+img_size = (32, 64)
+blur_val = 0.05
+alpha_r, alpha_l = 1, 1
+beta_r, beta_l = -150, -150
+sat_adj = 2
+supp_thresh = 10
+amplify_thresh = (62,47,81)
+amplify_rate = 20
+max_diff = 0.2
+
 true_left_path = "true_left.jpg"
 true_right_path = "true_right.jpg"
 os.chdir("FQCS_detector")
-uri = "test1.mp4"
+uri = "test.mp4"
 cap = cv2.VideoCapture(uri)
 # cap.set(cv2.CAP_PROP_POS_FRAMES, 1100)
 
@@ -79,16 +90,6 @@ while not found:
             cv2.imwrite(true_left_path, left)
             cv2.imwrite(true_right_path, right)
         else:
-            img_size = (32, 64)
-            blur_val = 0.05
-            alpha_r, alpha_l = 1, 1
-            beta_r, beta_l = -150, -150
-            sat_adj = 2
-            supp_thresh = 10
-            amplify_thresh = 65
-            amplify_rate = 10
-            max_diff = 0.2
-
             # output
             fig,axs = plt.subplots(1, 2)
             axs[0].imshow(left)
