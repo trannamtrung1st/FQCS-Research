@@ -103,11 +103,12 @@ class FQCSDetector:
         thr = cv2.threshold(cv2.cvtColor(im_th, cv2.COLOR_BGR2GRAY), bg_thresh, 255, cv2.THRESH_BINARY)[1]
         im_th[thr==0]=0
         cnts = self.find_contours(im_th,bg_thresh)
-        orig = image.copy()
+        mask = np.zeros((h,w), dtype="ubyte")
+        cv2.fillPoly(mask, cnts, (255, 255, 255))
+        image[mask<127] = 0
         c = cnts[0]
-        rect,dimA,dimB,box,tl,tr,br,bl = self.find_cnt_box(c, orig)
-        original = orig_img.copy()
-        warped = self.get_warped_cnt(orig_img, rect, box)
+        rect,dimA,dimB,box,tl,tr,br,bl = self.find_cnt_box(c, image)
+        warped = self.get_warped_cnt(image, rect, box)
         return (warped,box,dimA,dimB)
 
     def detect_pair_and_size(self, image: np.ndarray,bg_thresh=100, 
@@ -116,6 +117,9 @@ class FQCSDetector:
         pair = []
         h, w = image.shape[:2]
         cnts = self.find_contours(image,bg_thresh)
+        mask = np.zeros((h,w), dtype="ubyte")
+        cv2.fillPoly(mask, cnts, (255, 255, 255))
+        image[mask<127] = 0
         orig = image.copy()
         min_x,max_x = w,0
         from_x, to_x = w*detect_range[0],w*detect_range[1]
