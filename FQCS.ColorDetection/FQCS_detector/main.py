@@ -1,8 +1,8 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-# from detector_edge import FQCSDetector
-from detector_thresh import FQCSDetector
+from detector_edge import FQCSDetector
+# from detector_thresh import FQCSDetector
 # from detector_range import FQCSDetector
 import helper
 import os
@@ -13,6 +13,8 @@ beta = 0    # brightness control
 threshold1 = 40  # canny control
 threshold2 = 100  # canny control
 kernel = (5, 5)  # init
+d_kernel = np.ones((5,5))
+e_kernel = None        
 light_adj_thresh = 65
 bg_thresh = 110
 cr_from,cr_to = (0,0,0), (180, 255*0.7, 255*0.8)
@@ -53,10 +55,10 @@ while not found:
     cv2.imshow("Original", image)
 
     # using edge 
-    # pair = detector.detect_pair_and_size(image=image,
-    #     alpha=alpha,beta=beta,canny_threshold1=threshold1,canny_threshold2=threshold2,
-    #     kernel=kernel,sample_area=sample_area,
-    #     stop_condition=0,detect_range=(0.2,0.8))
+    pair = detector.detect_pair_and_size(image=image,
+        alpha=alpha,beta=beta,canny_threshold1=threshold1,canny_threshold2=threshold2,
+        kernel=kernel,d_kernel=d_kernel, e_kernel=e_kernel, sample_area=sample_area,
+        stop_condition=0,detect_range=(0.2,0.8))
 
     # using thresh
     light_adj_val = helper.brightness(image)/light_adj_thresh

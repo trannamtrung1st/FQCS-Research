@@ -56,13 +56,13 @@ class FQCSDetector:
         right_results, right_has_diff = self.find_color_diff(right, true_right,amp_thresh, supp_thresh,amplify_rate, max_diff)
         return left_results, left_has_diff, right_results, right_has_diff
 
-    def find_contours(self, image, kernel,alpha,beta,canny_threshold1, canny_threshold2):
+    def find_contours(self, image, kernel,d_kernel,e_kernel,alpha,beta,canny_threshold1, canny_threshold2):
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray, kernel, 0)
         enhanced = cv2.convertScaleAbs(gray, alpha=alpha, beta=beta)
         edged = cv2.Canny(enhanced, canny_threshold1, canny_threshold2)
-        edged = cv2.dilate(edged, None, iterations=1)
-        edged = cv2.erode(edged, None, iterations=1)
+        edged = cv2.dilate(edged, d_kernel, iterations=1)
+        edged = cv2.erode(edged, e_kernel, iterations=1)
 
         # output
         cv2.imshow("Edged", edged)
@@ -102,13 +102,13 @@ class FQCSDetector:
 
     def detect_one_and_size(self, orig_img: np.ndarray, image: np.ndarray, bg_thresh=100, alpha = 1.0,
         beta = 0,canny_threshold1 = 40,canny_threshold2 = 100,
-        kernel = (5, 5), sample_area=None):
+        kernel = (5, 5), d_kernel=None,e_kernel=None,sample_area=None):
         # start
         h, w = image.shape[:2]
         im_th = image.copy()
         thr = cv2.threshold(cv2.cvtColor(im_th, cv2.COLOR_BGR2GRAY), bg_thresh, 255, cv2.THRESH_BINARY)[1]
         im_th[thr==0]=0
-        cnts = self.find_contours(im_th, kernel, alpha, beta, canny_threshold1, canny_threshold2)
+        cnts = self.find_contours(im_th, kernel, d_kernel, e_kernel, alpha, beta, canny_threshold1, canny_threshold2)
         orig = image.copy()
         c = cnts[0]
         rect,dimA,dimB,box,tl,tr,br,bl = self.find_cnt_box(c, orig)
@@ -118,11 +118,11 @@ class FQCSDetector:
 
     def detect_pair_and_size(self, image: np.ndarray,bg_thresh=100, alpha = 1.0,
         beta = 0,canny_threshold1 = 40,canny_threshold2 = 100,
-        kernel = (5, 5), sample_area=None,stop_condition=0,detect_range=(0.2,0.8)):
+        kernel = (5, 5), d_kernel=None,e_kernel=None,sample_area=None,stop_condition=0,detect_range=(0.2,0.8)):
         # start
         pair = []
         h, w = image.shape[:2]
-        cnts = self.find_contours(image, kernel, alpha, beta, canny_threshold1, canny_threshold2)
+        cnts = self.find_contours(image, kernel, d_kernel, e_kernel, alpha, beta, canny_threshold1, canny_threshold2)
         orig = image.copy()
         min_x,max_x = w,0
         from_x, to_x = w*detect_range[0],w*detect_range[1]
