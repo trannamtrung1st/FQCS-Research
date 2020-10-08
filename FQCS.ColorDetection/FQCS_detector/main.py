@@ -33,7 +33,7 @@ max_diff = 0.2
 true_left_path = "true_left.jpg"
 true_right_path = "true_right.jpg"
 os.chdir("FQCS_detector")
-uri = "test1.mp4"
+uri = "test.mp4"
 cap = cv2.VideoCapture(uri)
 # cap.set(cv2.CAP_PROP_POS_FRAMES, 1100)
 

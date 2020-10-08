@@ -166,12 +166,17 @@ def rotation(img, angle):
 #     count+=1
 
 def diff_img(img1, img2, fname):
-    diff = img1-img2
-    cv2.imshow("Test", diff)
-    cv2.waitKey()
+    diff = np.abs(img1-img2)
+    plt.imshow(diff)
+    plt.show()
+    diff[diff>240]=0
+    plt.imshow(diff)
+    plt.show()
 
-img1 = cv2.imread("data/1/left/1.jpg")
-h,w,_=img1.shape
-img2 = cv2.imread("data/1/left/29.jpg")
-img2 = cv2.resize(img2, (w,h))
+img1 = cv2.imread("true_right_1.jpg")
+img1 = cv2.blur(img1, (10,10))
+img1 = cv2.resize(img1, (320,640))
+img2 = cv2.imread("true_right_2.jpg")
+img2 = cv2.blur(img2, (10,10))
+img2 = cv2.resize(img2, (320,640))
 diff_img(img1, img2,"")
