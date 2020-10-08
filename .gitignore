@@ -511,3 +511,4 @@ FodyWeavers.xsd
 .history/
 FQCS.ColorDetection/data
 FQCS.ColorDetection/unlabeled_data
+FQCS.ColorDetection/FQCS_detector/data

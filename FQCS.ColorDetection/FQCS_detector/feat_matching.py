@@ -7,9 +7,9 @@ import helper
 from scipy.spatial import distance as dist
 
 os.chdir("FQCS_detector")
-img1 = cv2.imread("true_left.jpg")
+img1 = cv2.imread("data/1/left/0.jpg")
 # img1 = cv2.flip(img1, 1)
-img2 = cv2.imread("test.jpg")
+img2 = cv2.imread("data/1/left/29.jpg")
 if img1 is None or img2 is None:
     print('Could not open or find the images!')
     exit(0)
