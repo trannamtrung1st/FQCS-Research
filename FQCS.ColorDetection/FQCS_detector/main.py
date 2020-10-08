@@ -26,7 +26,7 @@ alpha_r, alpha_l = 1, 1
 beta_r, beta_l = -150, -150
 sat_adj = 2
 supp_thresh = 10
-amplify_thresh = (6200,4700,8100)
+amplify_thresh = (76,31,85)
 amplify_rate = 20
 max_diff = 0.2
 
