@@ -214,6 +214,7 @@ def detect_pair_and_size(image: np.ndarray,
             warped = helper.get_warped_box(image, rect, box)
             pair.append((warped, box, dimA, dimB))
 
+    split_left, split_right = None, None
     if (len(pair) == 1):
         split_left, split_right = split_pair(image, cnts[0])
         if (split_left is not None):
@@ -225,7 +226,8 @@ def detect_pair_and_size(image: np.ndarray,
                 pair = [left, right]
 
     pair = sorted(pair, key=lambda x: x[1][0][0], reverse=True)
-    return pair if len(pair) == 2 else None, image, proc, boxes
+    return pair if len(
+        pair) == 2 else None, image, proc, boxes, split_left, split_right
 
 
 def split_pair(img, cnt):

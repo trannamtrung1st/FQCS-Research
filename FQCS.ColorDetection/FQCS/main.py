@@ -14,7 +14,7 @@ def main():
     raw_cfg["d_cfg"] = detector.default_thresh_config()
     process_cfg = detector.preprocess_config(raw_cfg)
 
-    uri = "test.mp4"
+    uri = "test2.mp4"
     cap = cv2.VideoCapture(uri)
     # cap.set(cv2.CAP_PROP_POS_FRAMES, 1100)
 
@@ -29,7 +29,7 @@ def main():
 
         find_contours_func = detector.get_find_contours_func_by_method(
             process_cfg["detect_method"])
-        pair, image, proc, boxes = detector.detect_pair_and_size(
+        pair, image, proc, boxes, split_left, split_right = detector.detect_pair_and_size(
             image,
             find_contours_func,
             process_cfg['d_cfg'],
@@ -50,6 +50,23 @@ def main():
 
         if (pair is not None):
             found = True
+            left, right = pair
+            left, right = left[0], right[0]
+
+            if split_left is not None:
+                # output
+                plt.imshow(split_left)
+                plt.show()
+                plt.imshow(split_right)
+                plt.show()
+
+            # output
+            fig, axs = plt.subplots(1, 2)
+            axs[0].imshow(left)
+            axs[0].set_title("Left detect")
+            axs[1].imshow(right)
+            axs[1].set_title("Right detect")
+            plt.show()
 
 
 if __name__ == "__main__":
