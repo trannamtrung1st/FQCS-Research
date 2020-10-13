@@ -1,6 +1,8 @@
 import numpy as np
 import imutils
 import cv2
+from imutils import perspective
+from scipy.spatial import distance as dist
 
 
 def change_contrast_and_brightness(image, alpha, beta):
@@ -146,10 +148,10 @@ def find_cnt_box(c, img):
     box = perspective.order_points(box)
 
     (tl, tr, br, bl) = box
-    (tltrX, tltrY) = helper.midpoint(tl, tr)
-    (blbrX, blbrY) = helper.midpoint(bl, br)
-    (tlblX, tlblY) = helper.midpoint(tl, bl)
-    (trbrX, trbrY) = helper.midpoint(tr, br)
+    (tltrX, tltrY) = midpoint(tl, tr)
+    (blbrX, blbrY) = midpoint(bl, br)
+    (tlblX, tlblY) = midpoint(tl, bl)
+    (trbrX, trbrY) = midpoint(tr, br)
 
     dimA = dist.euclidean((tltrX, tltrY), (blbrX, blbrY))
     dimB = dist.euclidean((tlblX, tlblY), (trbrX, trbrY))
@@ -169,6 +171,7 @@ def get_warped_box(img, rect, box):
 
 
 def fill_contours(image, cnts):
+    h, w, _ = image.shape
     mask = np.zeros((h, w), dtype="ubyte")
     cv2.fillPoly(mask, cnts, (255, 255, 255))
     image[mask < 127] = 0
@@ -176,12 +179,12 @@ def fill_contours(image, cnts):
 
 
 def adjust_thresh_by_brightness(image, light_adj_thresh, bg_thresh):
-    light_adj_val = helper.brightness(image) / light_adj_thresh
+    light_adj_val = brightness(image) / light_adj_thresh
     adj_bg_thresh = bg_thresh * light_adj_val
     return adj_bg_thresh
 
 
 def adjust_crange_by_brightness(image, light_adj_thresh, cr):
-    light_adj_val = helper.brightness(image) / light_adj_thresh
+    light_adj_val = brightness(image) / light_adj_thresh
     adj_cr = (cr[0], cr[1] * light_adj_val, cr[2] * light_adj_val)
     return adj_cr

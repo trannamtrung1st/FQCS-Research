@@ -1,10 +1,98 @@
-from scipy.spatial import distance as dist
 import numpy as np
 import cv2
 import helper
 import imutils
-from imutils import perspective
-from easydict import EasyDict as edict
+
+
+def get_find_contours_func_by_method(m_name):
+    if m_name == "edge":
+        return find_contours_using_edge
+    if m_name == "thresh":
+        return find_contours_using_thresh
+    if m_name == "range":
+        return find_contours_using_range
+
+
+def default_edge_config():
+    return dict(alpha=1.0,
+                beta=0,
+                threshold1=40,
+                threshold2=100,
+                kernel=[5, 5],
+                d_kernel=[5, 5],
+                e_kernel=None)
+
+
+def default_thresh_config():
+    return dict(bg_thresh=110, light_adj_thresh=65)
+
+
+def default_range_config():
+    return dict(cr_from=[0, 0, 0],
+                cr_to=[180, 255 * 0.5, 255 * 0.5],
+                light_adj_thresh=65)
+
+
+def default_color_config():
+    return dict(img_size=[32, 64],
+                blur_val=0.05,
+                alpha_r=1,
+                alpha_l=1,
+                beta_r=-150,
+                beta_l=-150,
+                sat_adj=2,
+                supp_thresh=10,
+                amplify_thresh=[None, None, None],
+                amplify_rate=20,
+                max_diff=0.2)
+
+
+def default_detector_config():
+    edge_cfg = default_edge_config()
+    thresh_cfg = default_thresh_config()
+    range_cfg = default_range_config()
+    color_cfg = default_color_config()
+    detector_config = dict(min_area=10000,
+                           sample_area=None,
+                           stop_condition=0,
+                           detect_range=[0.2, 0.8],
+                           color_cfg=color_cfg,
+                           detect_method="edge",
+                           d_cfg=edge_cfg)
+    return detector_config
+
+
+def preprocess_config(cfg):
+    if (cfg['detect_method'] == "edge"):
+        kernel = cfg['d_cfg']['kernel']
+        kernel = (kernel[0], kernel[1])
+        cfg['d_cfg']['kernel'] = kernel
+        d_kernel = cfg['d_cfg']['d_kernel']
+        e_kernel = cfg['d_cfg']['e_kernel']
+        if d_kernel is not None:
+            d_kernel = np.ones((d_kernel[0], d_kernel[1]))
+            cfg['d_cfg']['d_kernel'] = d_kernel
+        if e_kernel is not None:
+            e_kernel = np.ones((e_kernel[0], e_kernel[1]))
+            cfg['d_cfg']['e_kernel'] = e_kernel
+    elif (cfg['detect_method'] == "range"):
+        cr_from = cfg['d_cfg']['cr_from']
+        cr_to = cfg['d_cfg']['cr_to']
+        cr_from = (cr_from[0], cr_from[1], cr_from[2])
+        cr_to = (cr_to[0], cr_to[1], cr_to[2])
+        cfg['d_cfg']['cr_from'] = cr_from
+        cfg['d_cfg']['cr_to'] = cr_to
+
+    detect_range = cfg['detect_range']
+    detect_range = (detect_range[0], detect_range[1])
+    img_size = cfg['color_cfg']['img_size']
+    img_size = (img_size[0], img_size[1])
+    amplify_thresh = cfg['color_cfg']['amplify_thresh']
+    amplify_thresh = (amplify_thresh[0], amplify_thresh[1], amplify_thresh[2])
+    cfg['color_cfg']['amplify_thresh'] = amplify_thresh
+    cfg['color_cfg']['img_size'] = img_size
+    cfg['detect_range'] = detect_range
+    return cfg
 
 
 def preprocess_for_color_diff(img,
@@ -46,23 +134,23 @@ def find_color_diff(test, true, amp_thresh, supp_thresh, amplify_rate,
 
 
 def find_contours_using_edge(image, d_cfg):
-    cfg = edict(d_cfg)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    gray = cv2.GaussianBlur(gray, cfg.kernel, 0)
-    enhanced = cv2.convertScaleAbs(gray, alpha=cfg.alpha, beta=cfg.beta)
-    edged = cv2.Canny(enhanced, cfg.canny_threshold1, cfg.canny_threshold2)
-    edged = cv2.dilate(edged, cfg.d_kernel, iterations=1)
-    edged = cv2.erode(edged, cfg.e_kernel, iterations=1)
+    gray = cv2.GaussianBlur(gray, d_cfg['kernel'], 0)
+    enhanced = cv2.convertScaleAbs(gray,
+                                   alpha=d_cfg['alpha'],
+                                   beta=d_cfg['beta'])
+    edged = cv2.Canny(enhanced, d_cfg['threshold1'], d_cfg['threshold2'])
+    edged = cv2.dilate(edged, d_cfg['d_kernel'], iterations=1)
+    edged = cv2.erode(edged, d_cfg['e_kernel'], iterations=1)
     cnts = cv2.findContours(edged, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
     cnts = sorted(cnts, key=lambda c: cv2.contourArea(c), reverse=True)
     return cnts
 
 
-def find_contours_using_range(self, image, d_cfg):
-    cfg = edict(d_cfg)
+def find_contours_using_range(image, d_cfg):
     hsvFrame = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsvFrame, cfg.cr_from, cfg.cr_to)
+    mask = cv2.inRange(hsvFrame, d_cfg['cr_from'], d_cfg['cr_to'])
     h, w, _ = image.shape
     im_th = np.zeros((h, w), dtype="ubyte")
     im_th[mask < 127] = 255
@@ -72,10 +160,10 @@ def find_contours_using_range(self, image, d_cfg):
     return cnts
 
 
-def find_contours_using_thresh(self, image, d_cfg):
-    cfg = edict(d_cfg)
+def find_contours_using_thresh(image, d_cfg):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    ret, thresh = cv2.threshold(gray, cfg.bg_thresh, 255, cv2.THRESH_BINARY)
+    ret, thresh = cv2.threshold(gray, d_cfg['bg_thresh'], 255,
+                                cv2.THRESH_BINARY)
     cnts = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
     cnts = sorted(cnts, key=lambda c: cv2.contourArea(c), reverse=True)
@@ -111,7 +199,7 @@ def detect_pair_and_size(image: np.ndarray,
     for c in cnts[:2]:
         if cv2.contourArea(c) < min_area:
             break
-        rect, dimA, dimB, box, tl, tr, br, bl = find_cnt_box(c, orig)
+        rect, dimA, dimB, box, tl, tr, br, bl = helper.find_cnt_box(c, image)
         cur_min_x = min(tl[0], tr[0], br[0], bl[0])
         cur_max_x = max(tl[0], tr[0], br[0], bl[0])
         min_x = min(cur_min_x, min_x)
