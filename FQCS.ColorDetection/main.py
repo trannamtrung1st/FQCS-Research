@@ -1,17 +1,15 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-import helper
+from FQCS import helper
 import os
-import detector
+from FQCS import detector
 
 
 def main():
-    os.chdir("FQCS")
-
     raw_cfg = detector.default_detector_config()
-    raw_cfg["detect_method"] = "thresh"
-    raw_cfg["d_cfg"] = detector.default_thresh_config()
+    # raw_cfg["detect_method"] = "thresh"
+    # raw_cfg["d_cfg"] = detector.default_thresh_config()
     raw_cfg["color_cfg"]["amplify_thresh"] = (1000, 1000, 1000)
     process_cfg = detector.preprocess_config(raw_cfg)
 
@@ -29,7 +27,6 @@ def main():
 
     found = False
     while not found:
-        cv2.waitKey(1)
         _, image = cap.read()
         image = cv2.resize(image, (640, 480))
 
@@ -38,10 +35,22 @@ def main():
 
         find_contours_func = detector.get_find_contours_func_by_method(
             process_cfg["detect_method"])
+        d_cfg = process_cfg['d_cfg']
+
+        # adjust thresh
+        if (process_cfg["detect_method"] == "thresh"):
+            adj_bg_thresh = helper.adjust_thresh_by_brightness(
+                image, d_cfg["light_adj_thresh"], d_cfg["bg_thresh"])
+            d_cfg["adj_bg_thresh"] = adj_bg_thresh
+        elif (process_cfg["detect_method"] == "range"):
+            adj_cr_to = helper.adjust_crange_by_brightness(
+                image, d_cfg["light_adj_thresh"], d_cfg["cr_to"])
+            d_cfg["adj_cr_to"] = adj_cr_to
+
         pair, image, proc, boxes, split_left, split_right = detector.detect_pair_and_size(
             image,
             find_contours_func,
-            process_cfg['d_cfg'],
+            d_cfg,
             min_area=process_cfg['min_area'],
             stop_condition=process_cfg['stop_condition'],
             detect_range=process_cfg['detect_range'])
@@ -56,6 +65,7 @@ def main():
                         cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 0), 2)
         cv2.imshow("Processed", image)
         cv2.imshow("Contours processed", proc)
+        cv2.waitKey(1)
 
         if (pair is not None):
             found = True
