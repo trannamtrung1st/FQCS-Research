@@ -4,9 +4,10 @@ import matplotlib.pyplot as plt
 from FQCS import helper
 import os
 from FQCS import detector
+import asyncio
 
 
-def main():
+async def main():
     raw_cfg = detector.default_detector_config()
     raw_cfg["color_cfg"]["amplify_thresh"] = (1000, 1000, 1000)
     process_cfg = detector.preprocess_config(raw_cfg)
@@ -129,10 +130,13 @@ def main():
                 axs[1].imshow(pre_true_right)
                 plt.show()
 
-                left_results, right_results = detector.detect_color_difference(
+                left_task, right_task = detector.detect_color_difference(
                     pre_left, pre_right, pre_true_left, pre_true_right,
                     c_cfg['amplify_thresh'], c_cfg['supp_thresh'],
                     c_cfg['amplify_rate'], c_cfg['max_diff'])
+
+                left_results = await left_task
+                right_results = await right_task
 
                 # output
                 print("Left", left_results[1], left_results[2])
@@ -152,4 +156,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

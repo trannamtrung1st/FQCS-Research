@@ -2,6 +2,37 @@ import numpy as np
 import cv2
 from . import helper
 import imutils
+import asyncio
+from .tf2_yolov4.anchors import YOLOV4_ANCHORS
+from .tf2_yolov4.model import YOLOv4
+
+
+def get_yolov4_model(inp_shape=(640, 320, 3),
+                     num_classes=1,
+                     training=False,
+                     yolo_max_boxes=10,
+                     yolo_iou_threshold=0.5,
+                     yolo_score_threshold=0.5,
+                     weights="yolov4.h5"):
+    model = YOLOv4(input_shape=inp_shape,
+                   anchors=YOLOV4_ANCHORS,
+                   num_classes=num_classes,
+                   training=training,
+                   yolo_max_boxes=yolo_max_boxes,
+                   yolo_iou_threshold=yolo_iou_threshold,
+                   yolo_score_threshold=yolo_score_threshold,
+                   weights=None)
+    model.load_weights(weights)
+    return model
+
+
+async def detect_errors(model, images, img_size):
+    for i in range(len(images)):
+        img = cv2.resize(images[i], img_size)
+        images[i] = img / 255.
+    images = np.asarray(images)
+    boxes, scores, classes, valid_detections = model.predict(images)
+    return boxes, scores, classes, valid_detections
 
 
 def get_find_contours_func_by_method(m_name):
@@ -114,8 +145,8 @@ def preprocess_for_color_diff(img,
     return img
 
 
-def find_color_diff(test, true, amplify_thresh, supp_thresh, amplify_rate,
-                    max_diff):
+async def find_color_diff(test, true, amplify_thresh, supp_thresh,
+                          amplify_rate, max_diff):
     test_hist = helper.get_hist_bgr(test)
     true_hist = helper.get_hist_bgr(true)
     list_dist = np.zeros((3, ))
@@ -142,11 +173,13 @@ def detect_color_difference(left,
                             amplify_rate=None,
                             max_diff=None):
     # START
-    left_results = find_color_diff(left, true_left, amplify_thresh,
-                                   supp_thresh, amplify_rate, max_diff)
-    right_results = find_color_diff(right, true_right, amplify_thresh,
-                                    supp_thresh, amplify_rate, max_diff)
-    return left_results, right_results
+    left_task = asyncio.create_task(
+        find_color_diff(left, true_left, amplify_thresh, supp_thresh,
+                        amplify_rate, max_diff))
+    right_task = asyncio.create_task(
+        find_color_diff(right, true_right, amplify_thresh, supp_thresh,
+                        amplify_rate, max_diff))
+    return left_task, right_task
 
 
 def find_contours_using_edge(image, d_cfg):
