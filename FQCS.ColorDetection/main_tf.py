@@ -33,20 +33,7 @@ def main():
     CLASSES = ['dirt']
 
     import matplotlib.pyplot as plt
-
-    def draw_results(img, boxes, scores, classes, min_score=0.5):
-
-        for (xmin, ymin, xmax, ymax), score, cl in zip(boxes.tolist(),
-                                                       scores.tolist(),
-                                                       classes.tolist()):
-            if score > min_score:
-                cv2.rectangle(img, (int(xmin), int(ymin)),
-                              (int(xmax), int(ymax)), (0, 0, 1), 2)
-                text = f'{CLASSES[cl]}: {score:0.2f}'
-                cv2.putText(img, text, (int(xmin), int(ymin - 5)),
-                            cv2.QT_FONT_NORMAL, 0.5, (0, 0, 1), 1)
-
-        return img
+    from FQCS.tf2_yolov4 import helper
 
     while True:
         img = cv2.imread("FQCS_detector/data/1/dirty_sorted/" +
@@ -55,12 +42,9 @@ def main():
         images = np.array([img]) / 255.
         boxes, scores, classes, valid_detections = model.predict(images)
 
-        draw_results(
-            images[0],
-            boxes[0] * [WIDTH, HEIGHT, WIDTH, HEIGHT],
-            scores[0],
-            classes[0].astype(int),
-        )
+        helper.draw_results(images[0],
+                            boxes[0] * [WIDTH, HEIGHT, WIDTH, HEIGHT],
+                            scores[0], classes[0].astype(int), CLASSES)
 
         cv2.imshow("Prediction", images[0])
         if (cv2.waitKey() == ord('e')):
