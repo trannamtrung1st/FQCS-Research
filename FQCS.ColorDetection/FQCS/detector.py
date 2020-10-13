@@ -52,7 +52,7 @@ def default_detector_config():
     thresh_cfg = default_thresh_config()
     range_cfg = default_range_config()
     color_cfg = default_color_config()
-    detector_config = dict(min_area=10000,
+    detector_config = dict(min_area=400 * 100 * 0.25,
                            stop_condition=0,
                            detect_range=[0.2, 0.8],
                            color_cfg=color_cfg,
@@ -88,9 +88,9 @@ def preprocess_config(cfg):
     img_size = (img_size[0], img_size[1])
     amplify_thresh = cfg['color_cfg']['amplify_thresh']
     amplify_thresh = (amplify_thresh[0], amplify_thresh[1], amplify_thresh[2])
+    cfg['detect_range'] = detect_range
     cfg['color_cfg']['amplify_thresh'] = amplify_thresh
     cfg['color_cfg']['img_size'] = img_size
-    cfg['detect_range'] = detect_range
     return cfg
 
 
@@ -113,7 +113,7 @@ def preprocess_for_color_diff(img,
     return img
 
 
-def find_color_diff(test, true, amp_thresh, supp_thresh, amplify_rate,
+def find_color_diff(test, true, amplify_thresh, supp_thresh, amplify_rate,
                     max_diff):
     test_hist = helper.get_hist_bgr(test)
     true_hist = helper.get_hist_bgr(true)
@@ -124,12 +124,28 @@ def find_color_diff(test, true, amp_thresh, supp_thresh, amplify_rate,
         diff = np.abs(test_hist[i] - true_hist[i])
         diff[diff < supp_thresh] = 0
         dist = np.linalg.norm(diff)
-        if (dist > amp_thresh[i]):
-            dist *= (dist / amp_thresh[i])**amplify_rate
+        if (dist > amplify_thresh[i]):
+            dist *= (dist / amplify_thresh[i])**amplify_rate
         list_dist[i] = dist
     sum_dist = np.sum(list_dist)
     avg = sum_dist / max_dist
-    return sum_dist, avg >= max_diff
+    return sum_dist, avg, list_dist, avg >= max_diff
+
+
+def detect_color_difference(left,
+                            right,
+                            true_left,
+                            true_right,
+                            amplify_thresh=None,
+                            supp_thresh=None,
+                            amplify_rate=None,
+                            max_diff=None):
+    # START
+    left_results = find_color_diff(left, true_left, amplify_thresh,
+                                   supp_thresh, amplify_rate, max_diff)
+    right_results = find_color_diff(right, true_right, amplify_thresh,
+                                    supp_thresh, amplify_rate, max_diff)
+    return left_results, right_results
 
 
 def find_contours_using_edge(image, d_cfg):
@@ -208,11 +224,13 @@ def detect_pair_and_size(image: np.ndarray,
         if (min_x < from_x or max_x > to_x):
             break
 
-        center_val = w - max_x - min_x
-        is_center = True if (center_val <= stop_condition) else False
-        if (is_center):
-            warped = helper.get_warped_box(image, rect, box)
-            pair.append((warped, box, dimA, dimB))
+        warped = helper.get_warped_box(image, rect, box)
+        pair.append((warped, box, dimA, dimB))
+
+    center_val = w - max_x - min_x
+    is_center = True if (center_val <= stop_condition) else False
+    if (not is_center):
+        pair = []
 
     split_left, split_right = None, None
     if (len(pair) == 1):
