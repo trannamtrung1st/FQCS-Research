@@ -6,7 +6,7 @@ def main():
     detector = FQCSDetector()
     
     # save config
-    # detector.save_config("config.json")
+    detector.save_config("config.json")
     
     # load config
     detector.load_config("config.json")
