@@ -8,8 +8,6 @@ from FQCS import detector
 
 def main():
     raw_cfg = detector.default_detector_config()
-    # raw_cfg["detect_method"] = "thresh"
-    # raw_cfg["d_cfg"] = detector.default_thresh_config()
     raw_cfg["color_cfg"]["amplify_thresh"] = (1000, 1000, 1000)
     process_cfg = detector.preprocess_config(raw_cfg)
 

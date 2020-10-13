@@ -48,16 +48,13 @@ def default_color_config():
 
 
 def default_detector_config():
-    edge_cfg = default_edge_config()
-    thresh_cfg = default_thresh_config()
-    range_cfg = default_range_config()
     color_cfg = default_color_config()
     detector_config = dict(min_area=400 * 100 * 0.25,
                            stop_condition=0,
                            detect_range=[0.2, 0.8],
                            color_cfg=color_cfg,
-                           detect_method="edge",
-                           d_cfg=edge_cfg)
+                           detect_method="thresh",
+                           d_cfg=default_thresh_config())
     return detector_config
 
 
