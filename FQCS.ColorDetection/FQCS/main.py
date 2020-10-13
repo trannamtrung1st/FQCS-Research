@@ -10,11 +10,9 @@ def main():
     os.chdir("FQCS")
 
     raw_cfg = detector.default_detector_config()
-    raw_cfg["detect_method"] = "range"
-    raw_cfg["d_cfg"] = detector.default_range_config()
     process_cfg = detector.preprocess_config(raw_cfg)
 
-    uri = "test.mp4"
+    uri = "test2.mp4"
     cap = cv2.VideoCapture(uri)
     # cap.set(cv2.CAP_PROP_POS_FRAMES, 1100)
 
@@ -31,7 +29,6 @@ def main():
             find_contours_func,
             process_cfg['d_cfg'],
             min_area=process_cfg['min_area'],
-            sample_area=process_cfg['sample_area'],
             stop_condition=process_cfg['stop_condition'],
             detect_range=process_cfg['detect_range'])
 

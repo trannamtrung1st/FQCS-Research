@@ -53,7 +53,6 @@ def default_detector_config():
     range_cfg = default_range_config()
     color_cfg = default_color_config()
     detector_config = dict(min_area=10000,
-                           sample_area=None,
                            stop_condition=0,
                            detect_range=[0.2, 0.8],
                            color_cfg=color_cfg,
@@ -178,7 +177,7 @@ def detect_one_and_size(orig_img: np.ndarray, image: np.ndarray,
     helper.fill_contours(image, cnts)
     c = cnts[0]
     rect, dimA, dimB, box, tl, tr, br, bl = helper.find_cnt_box(c, image)
-    warped = get_warped_cnt(image, rect, box)
+    warped = helper.get_warped_box(image, rect, box)
     return (warped, box, dimA, dimB)
 
 
@@ -186,7 +185,6 @@ def detect_pair_and_size(image: np.ndarray,
                          find_contours_func,
                          d_cfg,
                          min_area=None,
-                         sample_area=None,
                          stop_condition=0,
                          detect_range=(0.2, 0.8)):
     # start
@@ -213,18 +211,15 @@ def detect_pair_and_size(image: np.ndarray,
             warped = helper.get_warped_box(image, rect, box)
             pair.append((warped, box, dimA, dimB))
 
-    split_left, split_right = None, None
-    if (sample_area is not None and len(pair) == 1):
-        area = pair[0][2] * pair[0][3]
-        if (area >= sample_area * 1.25):
-            split_left, split_right = split_pair(image, cnts[0])
-    if (split_left is not None):
-        left = detect_one_and_size(image, split_left, find_contours_func,
-                                   d_cfg)
-        right = detect_one_and_size(image, split_right, find_contours_func,
-                                    d_cfg)
-        if (left is not None and right is not None):
-            pair = [left, right]
+    if (len(pair) == 1):
+        split_left, split_right = split_pair(image, cnts[0])
+        if (split_left is not None):
+            left = detect_one_and_size(image, split_left, find_contours_func,
+                                       d_cfg)
+            right = detect_one_and_size(image, split_right, find_contours_func,
+                                        d_cfg)
+            if (left is not None and right is not None):
+                pair = [left, right]
 
     pair = sorted(pair, key=lambda x: x[1][0][0], reverse=True)
     return pair if len(pair) == 2 else None
