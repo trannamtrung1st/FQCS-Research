@@ -6,5 +6,20 @@
   ],
   "stop_condition": 0,
   "min_area": null,
-  "find_contours_func": "edge"
+  "find_contours_func": "edge",
+  "d_config": {
+    "kernel": [
+      5,
+      5
+    ],
+    "alpha": 1,
+    "beta": 0,
+    "thresh1": 40,
+    "thresh2": 100,
+    "d_kernel": [
+      5,
+      5
+    ],
+    "e_kernel": null
+  }
 }
