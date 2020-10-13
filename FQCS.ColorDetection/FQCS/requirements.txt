@@ -2,4 +2,4 @@ numpy
 imutils
 cv2
 scipy
-easydict
+tensorflow

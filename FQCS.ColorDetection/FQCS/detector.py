@@ -7,13 +7,13 @@ from .tf2_yolov4.anchors import YOLOV4_ANCHORS
 from .tf2_yolov4.model import YOLOv4
 
 
-def get_yolov4_model(inp_shape=(640, 320, 3),
-                     num_classes=1,
-                     training=False,
-                     yolo_max_boxes=10,
-                     yolo_iou_threshold=0.5,
-                     yolo_score_threshold=0.5,
-                     weights="yolov4.h5"):
+async def get_yolov4_model(inp_shape=(320, 160, 3),
+                           num_classes=1,
+                           training=False,
+                           yolo_max_boxes=10,
+                           yolo_iou_threshold=0.5,
+                           yolo_score_threshold=0.5,
+                           weights="yolov4.h5"):
     model = YOLOv4(input_shape=inp_shape,
                    anchors=YOLOV4_ANCHORS,
                    num_classes=num_classes,
@@ -44,28 +44,41 @@ def get_find_contours_func_by_method(m_name):
         return find_contours_using_range
 
 
+def default_err_config():
+    return dict(inp_shape=(320, 160, 3),
+                img_size=(160, 320),
+                num_classes=1,
+                yolo_max_boxes=10,
+                yolo_iou_threshold=0.5,
+                weights="yolov4.h5",
+                yolo_score_threshold=0.3,
+                classes=['dirt'])
+
+
 def default_edge_config():
     return dict(alpha=1.0,
                 beta=0,
                 threshold1=40,
                 threshold2=100,
-                kernel=[5, 5],
-                d_kernel=[5, 5],
+                kernel=(5, 5),
+                d_kernel=np.ones((5, 5)),
                 e_kernel=None)
 
 
 def default_thresh_config():
-    return dict(bg_thresh=110, light_adj_thresh=65)
+    return dict(bg_thresh=110, adj_bg_thresh=110, light_adj_thresh=65)
 
 
 def default_range_config():
-    return dict(cr_from=[0, 0, 0],
-                cr_to=[180, 255 * 0.5, 255 * 0.5],
+    cr_to = (180, 255 * 0.5, 255 * 0.5)
+    return dict(cr_from=(0, 0, 0),
+                cr_to=cr_to,
+                adj_cr_to=cr_to,
                 light_adj_thresh=65)
 
 
 def default_color_config():
-    return dict(img_size=[32, 64],
+    return dict(img_size=(32, 64),
                 blur_val=0.05,
                 alpha_r=1,
                 alpha_l=1,
@@ -73,23 +86,26 @@ def default_color_config():
                 beta_l=-150,
                 sat_adj=2,
                 supp_thresh=10,
-                amplify_thresh=[None, None, None],
+                amplify_thresh=(None, None, None),
                 amplify_rate=20,
                 max_diff=0.2)
 
 
 def default_detector_config():
     color_cfg = default_color_config()
+    err_cfg = default_err_config()
+    d_cfg = default_thresh_config()
     detector_config = dict(min_area=400 * 100 * 0.25,
                            stop_condition=0,
-                           detect_range=[0.2, 0.8],
+                           detect_range=(0.2, 0.8),
                            color_cfg=color_cfg,
                            detect_method="thresh",
-                           d_cfg=default_thresh_config())
+                           err_cfg=err_cfg,
+                           d_cfg=d_cfg)
     return detector_config
 
 
-def preprocess_config(cfg):
+def load_json_cfg(json):
     if (cfg['detect_method'] == "edge"):
         kernel = cfg['d_cfg']['kernel']
         kernel = (kernel[0], kernel[1])
