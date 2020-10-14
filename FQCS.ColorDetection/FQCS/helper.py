@@ -5,6 +5,14 @@ from imutils import perspective
 from scipy.spatial import distance as dist
 
 
+def calculate_length_per10px(total_px, total_length):
+    return total_length / total_px * 10
+
+
+def calculate_length(total_px, length_per_10px):
+    return total_px / 10 * length_per_10px
+
+
 def change_contrast_and_brightness(image, alpha, beta):
     new_image = np.zeros(image.shape, image.dtype)
     new_image = cv2.convertScaleAbs(image, alpha=alpha, beta=beta)

@@ -10,6 +10,7 @@ import asyncio
 
 async def main():
     detector_cfg = detector.default_detector_config()
+    detector_cfg["length_per_10px"] = 0.65
     detector_cfg["color_cfg"]["amplify_thresh"] = (1000, 1000, 1000)
 
     err_cfg = detector_cfg["err_cfg"]
@@ -75,12 +76,16 @@ async def main():
             detect_range=detector_cfg['detect_range'])
 
         # output
+        unit = detector_cfg["length_unit"]
+        per_10px = detector_cfg["length_per_10px"]
         for b in boxes:
             dimA, dimB, box, tl, tr, br, bl = b
+            lH, lW = helper.calculate_length(
+                dimA, per_10px), helper.calculate_length(dimB, per_10px)
             cv2.drawContours(image, [box.astype("int")], -1, (0, 255, 0), 2)
-            cv2.putText(image, "{:.1f}px".format(dimA), (tl[0], tl[1]),
+            cv2.putText(image, f"{lW:.1f} {unit}", (tl[0], tl[1]),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 0), 2)
-            cv2.putText(image, "{:.1f}px".format(dimB), (br[0], br[1]),
+            cv2.putText(image, f"{lH:.1f} {unit}", (br[0], br[1]),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 0), 2)
         cv2.imshow("Processed", image)
         cv2.imshow("Contours processed", proc)

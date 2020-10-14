@@ -98,6 +98,8 @@ def default_detector_config():
     detector_config = dict(min_area=400 * 100 * 0.25,
                            stop_condition=0,
                            detect_range=(0.2, 0.8),
+                           length_per_10px=None,
+                           length_unit="cm",
                            color_cfg=color_cfg,
                            detect_method="thresh",
                            err_cfg=err_cfg,
