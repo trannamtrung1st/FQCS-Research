@@ -5,6 +5,7 @@ import imutils
 import asyncio
 from .tf2_yolov4.anchors import YOLOV4_ANCHORS
 from .tf2_yolov4.model import YOLOv4
+import json
 
 
 async def get_yolov4_model(inp_shape=(320, 160, 3),
@@ -107,40 +108,64 @@ def default_detector_config():
     return detector_config
 
 
-def load_json_cfg(json):
+def save_json_cfg(cfg, path):
     if (cfg['detect_method'] == "edge"):
-        kernel = cfg['d_cfg']['kernel']
-        kernel = (kernel[0], kernel[1])
-        cfg['d_cfg']['kernel'] = kernel
-        d_kernel = cfg['d_cfg']['d_kernel']
-        e_kernel = cfg['d_cfg']['e_kernel']
+        d_kernel = cfg["d_cfg"]["d_kernel"]
+        e_kernel = cfg["d_cfg"]["e_kernel"]
         if d_kernel is not None:
-            d_kernel = np.ones((d_kernel[0], d_kernel[1]))
-            cfg['d_cfg']['d_kernel'] = d_kernel
+            cfg["d_cfg"]["d_kernel"] = d_kernel.shape
         if e_kernel is not None:
-            e_kernel = np.ones((e_kernel[0], e_kernel[1]))
-            cfg['d_cfg']['e_kernel'] = e_kernel
-    elif (cfg['detect_method'] == "range"):
-        cr_from = cfg['d_cfg']['cr_from']
-        cr_to = cfg['d_cfg']['cr_to']
-        cr_from = (cr_from[0], cr_from[1], cr_from[2])
-        cr_to = (cr_to[0], cr_to[1], cr_to[2])
-        cfg['d_cfg']['cr_from'] = cr_from
-        cfg['d_cfg']['cr_to'] = cr_to
-        cfg['d_cfg']['adj_cr_to'] = cr_to
-    elif (cfg['detect_method'] == 'thresh'):
-        bg_thresh = cfg['d_cfg']['bg_thresh']
-        cfg['d_cfg']['adj_bg_thresh'] = bg_thresh
+            cfg["d_cfg"]["e_kernel"] = e_kernel.shape
+    with open(path, 'w') as fo:
+        json.dump(cfg, fo, indent=2)
 
-    detect_range = cfg['detect_range']
-    detect_range = (detect_range[0], detect_range[1])
-    img_size = cfg['color_cfg']['img_size']
-    img_size = (img_size[0], img_size[1])
-    amplify_thresh = cfg['color_cfg']['amplify_thresh']
-    amplify_thresh = (amplify_thresh[0], amplify_thresh[1], amplify_thresh[2])
-    cfg['detect_range'] = detect_range
-    cfg['color_cfg']['amplify_thresh'] = amplify_thresh
-    cfg['color_cfg']['img_size'] = img_size
+
+def load_json_cfg(path):
+    with open(path) as fi:
+        cfg = json.load(fi)
+        if (cfg['detect_method'] == "edge"):
+            kernel = cfg['d_cfg']['kernel']
+            kernel = (kernel[0], kernel[1])
+            cfg['d_cfg']['kernel'] = kernel
+            d_kernel = cfg['d_cfg']['d_kernel']
+            e_kernel = cfg['d_cfg']['e_kernel']
+            if d_kernel is not None:
+                d_kernel = np.ones((d_kernel[0], d_kernel[1]))
+                cfg['d_cfg']['d_kernel'] = d_kernel
+            if e_kernel is not None:
+                e_kernel = np.ones((e_kernel[0], e_kernel[1]))
+                cfg['d_cfg']['e_kernel'] = e_kernel
+        elif (cfg['detect_method'] == "range"):
+            cr_from = cfg['d_cfg']['cr_from']
+            cr_to = cfg['d_cfg']['cr_to']
+            cr_from = (cr_from[0], cr_from[1], cr_from[2])
+            cr_to = (cr_to[0], cr_to[1], cr_to[2])
+            cfg['d_cfg']['cr_from'] = cr_from
+            cfg['d_cfg']['cr_to'] = cr_to
+            cfg['d_cfg']['adj_cr_to'] = cr_to
+        elif (cfg['detect_method'] == 'thresh'):
+            bg_thresh = cfg['d_cfg']['bg_thresh']
+            cfg['d_cfg']['adj_bg_thresh'] = bg_thresh
+
+        detect_range = cfg['detect_range']
+        detect_range = (detect_range[0], detect_range[1])
+        img_size = cfg['color_cfg']['img_size']
+        img_size = (img_size[0], img_size[1])
+        amplify_thresh = cfg['color_cfg']['amplify_thresh']
+        amplify_thresh = (amplify_thresh[0], amplify_thresh[1],
+                          amplify_thresh[2])
+        cfg['detect_range'] = detect_range
+        cfg['color_cfg']['amplify_thresh'] = amplify_thresh
+        cfg['color_cfg']['img_size'] = img_size
+
+        err_cfg = cfg["err_cfg"]
+        img_size = err_cfg["img_size"]
+        inp_shape = err_cfg["inp_shape"]
+        img_size = (img_size[0], img_size[1])
+        inp_shape = (inp_shape[0], inp_shape[1], inp_shape[2])
+        err_cfg['img_size'] = img_size
+        err_cfg['inp_shape'] = inp_shape
+
     return cfg
 
 

@@ -9,9 +9,10 @@ import asyncio
 
 
 async def main():
-    detector_cfg = detector.default_detector_config()
-    detector_cfg["length_per_10px"] = 0.65
-    detector_cfg["color_cfg"]["amplify_thresh"] = (1000, 1000, 1000)
+    # detector_cfg = detector.default_detector_config()
+    # detector_cfg["length_per_10px"] = 0.65
+    # detector_cfg["color_cfg"]["amplify_thresh"] = (1000, 1000, 1000)
+    detector_cfg = detector.load_json_cfg("config.json")
 
     err_cfg = detector_cfg["err_cfg"]
     model = asyncio.create_task(
@@ -200,5 +201,13 @@ async def main():
                 plt.show()
 
 
+def save_cfg():
+    detector_cfg = detector.default_detector_config()
+    detector_cfg["length_per_10px"] = 0.65
+    detector_cfg["color_cfg"]["amplify_thresh"] = (1000, 1000, 1000)
+    detector.save_json_cfg(detector_cfg, "config.json")
+
+
 if __name__ == "__main__":
     asyncio.run(main())
+    # save_cfg()
