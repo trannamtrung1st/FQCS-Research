@@ -79,10 +79,12 @@ async def main():
         # output
         unit = detector_cfg["length_unit"]
         per_10px = detector_cfg["length_per_10px"]
+        sizes = []
         for b in boxes:
             dimA, dimB, box, tl, tr, br, bl = b
             lH, lW = helper.calculate_length(
                 dimA, per_10px), helper.calculate_length(dimB, per_10px)
+            sizes.append((lH, lW))
             cv2.drawContours(image, [box.astype("int")], -1, (0, 255, 0), 2)
             cv2.putText(image, f"{lW:.1f} {unit}", (tl[0], tl[1]),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 0), 2)
@@ -96,6 +98,8 @@ async def main():
             found = True
             left, right = pair
             left, right = left[0], right[0]
+            h_diff, w_diff = detector.compare_size(sizes[0], sizes[1],
+                                                   detector_cfg)
 
             if split_left is not None:
                 # output
@@ -110,6 +114,8 @@ async def main():
             axs[0].set_title("Left detect")
             axs[1].imshow(right)
             axs[1].set_title("Right detect")
+            if h_diff or w_diff:
+                plt.title("Right detect: Different size")
             plt.show()
 
             left = cv2.flip(left, 1)

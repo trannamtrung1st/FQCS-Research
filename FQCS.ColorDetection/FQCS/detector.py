@@ -8,6 +8,13 @@ from .tf2_yolov4.model import YOLOv4
 import json
 
 
+def compare_size(lsize, rsize, detector_cfg):
+    max_size_diff = detector_cfg["max_size_diff"]
+    return abs(lsize[0] -
+               rsize[0]) >= max_size_diff, abs(lsize[1] -
+                                               rsize[1]) >= max_size_diff
+
+
 async def get_yolov4_model(inp_shape=(320, 160, 3),
                            num_classes=1,
                            training=False,
@@ -101,6 +108,7 @@ def default_detector_config():
                            detect_range=(0.2, 0.8),
                            length_per_10px=None,
                            length_unit="cm",
+                           max_size_diff=0.3,
                            color_cfg=color_cfg,
                            detect_method="thresh",
                            err_cfg=err_cfg,
