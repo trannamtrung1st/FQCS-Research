@@ -1,4 +1,5 @@
 {
     "python.pythonPath": "N:\\ITs\\Anaconda\\App\\envs\\Tensorflow\\python.exe",
-    "python.formatting.provider": "yapf"
+    "python.formatting.provider": "yapf",
+    "python.linting.enabled": false
 }
