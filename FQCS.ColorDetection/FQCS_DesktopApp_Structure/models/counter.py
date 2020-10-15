@@ -1,7 +1,7 @@
 from app.observer import Subject
 
 
-class Data(Subject):
+class Counter(Subject):
     def __init__(self):
         super().__init__()
-        self.x, self.y = 0, 0
+        self.count = 0

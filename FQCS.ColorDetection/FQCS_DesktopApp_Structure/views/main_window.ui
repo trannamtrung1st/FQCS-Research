@@ -6,52 +6,22 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>596</height>
+    <width>878</width>
+    <height>600</height>
    </rect>
   </property>
-  <property name="sizePolicy">
-   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-    <horstretch>0</horstretch>
-    <verstretch>0</verstretch>
-   </sizepolicy>
-  </property>
   <property name="windowTitle">
-   <string>Main window</string>
+   <string>Main Window</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <item>
-     <widget class="QWidget" name="lblGroup" native="true">
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <item alignment="Qt::AlignLeft|Qt::AlignTop">
-        <widget class="QLabel" name="lblData">
-         <property name="font">
-          <font>
-           <family>Arial</family>
-           <pointsize>11</pointsize>
-           <kerning>true</kerning>
-          </font>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">padding: 5%;
-</string>
-         </property>
-         <property name="text">
-          <string>Data</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item alignment="Qt::AlignRight|Qt::AlignBottom">
-     <widget class="QWidget" name="btnGroup" native="true">
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
+   <layout class="QGridLayout" name="gridLayout" rowstretch="0" columnstretch="2,0">
+    <item row="0" column="1" alignment="Qt::AlignBottom">
+     <widget class="QWidget" name="containerRight" native="true">
+      <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
         <widget class="QPushButton" name="btnAdd">
          <property name="text">
-          <string>Add data</string>
+          <string>Add counter</string>
          </property>
         </widget>
        </item>
@@ -65,6 +35,36 @@
       </layout>
      </widget>
     </item>
+    <item row="0" column="0" alignment="Qt::AlignTop">
+     <widget class="QWidget" name="containerLef" native="true">
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item alignment="Qt::AlignTop">
+        <widget class="QLabel" name="lblCounter">
+         <property name="font">
+          <font>
+           <pointsize>18</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Counter: </string>
+         </property>
+        </widget>
+       </item>
+       <item alignment="Qt::AlignTop">
+        <widget class="QLabel" name="lblClicked">
+         <property name="font">
+          <font>
+           <pointsize>18</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Clicked:</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -72,11 +72,12 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>878</width>
      <height>26</height>
     </rect>
    </property>
   </widget>
+  <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>
  <connections/>
