@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ScreenTemplate</class>
- <widget class="QWidget" name="ScreenTemplate">
+ <class>DetectionCfgScreen</class>
+ <widget class="QWidget" name="DetectionCfgScreen">
   <property name="geometry">
    <rect>
     <x>0</x>
