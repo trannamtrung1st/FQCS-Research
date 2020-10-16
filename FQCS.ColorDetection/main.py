@@ -6,13 +6,17 @@ from FQCS.tf2_yolov4 import helper as y_helper
 import os
 from FQCS import detector
 import asyncio
-
+import os
 
 async def main():
+    config_folder = "./"
+    sample_left_path = os.path.join(config_folder, detector.SAMPLE_LEFT_FILE)
+    sample_right_path = os.path.join(config_folder, detector.SAMPLE_RIGHT_FILE)
+
     # detector_cfg = detector.default_detector_config()
     # detector_cfg["length_per_10px"] = 0.65
     # detector_cfg["color_cfg"]["amplify_thresh"] = (1000, 1000, 1000)
-    detector_cfg = detector.load_json_cfg("config.json")
+    detector_cfg = detector.load_json_cfg(config_folder)
 
     err_cfg = detector_cfg["err_cfg"]
     model = asyncio.create_task(
@@ -25,8 +29,6 @@ async def main():
             weights=err_cfg["weights"],
             yolo_score_threshold=err_cfg["yolo_score_threshold"]))
 
-    true_left_path = "true_left.jpg"
-    true_right_path = "true_right.jpg"
     uri = "test.mp4"
     cap = cv2.VideoCapture(uri)
     frame_width, frame_height = detector_cfg["frame_width"], detector_cfg[
@@ -36,10 +38,10 @@ async def main():
     min_width, min_height = frame_width * min_width, frame_height * min_height
     # cap.set(cv2.CAP_PROP_POS_FRAMES, 1100)
 
-    true_left, true_right = None, None
-    if os.path.exists(true_left_path):
-        true_left = cv2.imread(true_left_path)
-        true_right = cv2.imread(true_right_path)
+    sample_left, sample_right = None, None
+    if os.path.exists(sample_left_path):
+        sample_left = cv2.imread(sample_left_path)
+        sample_right = cv2.imread(sample_right_path)
 
     model = await model
     try:
@@ -128,12 +130,12 @@ async def main():
             plt.show()
 
             left = cv2.flip(left, 1)
-            if not os.path.exists(true_left_path):
-                cv2.imwrite(true_left_path, left)
-                cv2.imwrite(true_right_path, right)
+            if not os.path.exists(sample_left_path):
+                cv2.imwrite(sample_left_path, left)
+                cv2.imwrite(sample_right_path, right)
             else:
                 # test only
-                left = true_left
+                left = sample_left
 
                 images = [left, right]
                 err_task = asyncio.create_task(
@@ -142,11 +144,11 @@ async def main():
 
                 # start
                 c_cfg = detector_cfg['color_cfg']
-                pre_true_left = detector.preprocess_for_color_diff(
-                    true_left, c_cfg['img_size'], c_cfg['blur_val'],
+                pre_sample_left = detector.preprocess_for_color_diff(
+                    sample_left, c_cfg['img_size'], c_cfg['blur_val'],
                     c_cfg['alpha_l'], c_cfg['beta_l'], c_cfg['sat_adj'])
-                pre_true_right = detector.preprocess_for_color_diff(
-                    true_right, c_cfg['img_size'], c_cfg['blur_val'],
+                pre_sample_right = detector.preprocess_for_color_diff(
+                    sample_right, c_cfg['img_size'], c_cfg['blur_val'],
                     c_cfg['alpha_r'], c_cfg['beta_r'], c_cfg['sat_adj'])
                 pre_left = detector.preprocess_for_color_diff(
                     left, c_cfg['img_size'], c_cfg['blur_val'],
@@ -156,7 +158,7 @@ async def main():
                     c_cfg['alpha_r'], c_cfg['beta_r'], c_cfg['sat_adj'])
 
                 left_task, right_task = detector.detect_color_difference(
-                    pre_left, pre_right, pre_true_left, pre_true_right,
+                    pre_left, pre_right, pre_sample_left, pre_sample_right,
                     c_cfg['amplify_thresh'], c_cfg['supp_thresh'],
                     c_cfg['amplify_rate'], c_cfg['max_diff'])
 
@@ -168,24 +170,24 @@ async def main():
                 fig, axs = plt.subplots(1, 2)
                 axs[0].imshow(left)
                 axs[0].set_title("Left detect")
-                axs[1].imshow(true_left)
+                axs[1].imshow(sample_left)
                 axs[1].set_title("Left sample")
                 plt.show()
                 fig, axs = plt.subplots(1, 2)
                 axs[0].imshow(right)
                 axs[0].set_title("Right detect")
-                axs[1].imshow(true_right)
+                axs[1].imshow(sample_right)
                 axs[1].set_title("Right sample")
                 plt.show()
 
                 # output
                 fig, axs = plt.subplots(1, 2)
                 axs[0].imshow(pre_left)
-                axs[1].imshow(pre_true_left)
+                axs[1].imshow(pre_sample_left)
                 plt.show()
                 fig, axs = plt.subplots(1, 2)
                 axs[0].imshow(pre_right)
-                axs[1].imshow(pre_true_right)
+                axs[1].imshow(pre_sample_right)
                 plt.show()
 
                 # output
@@ -204,14 +206,14 @@ async def main():
                 if (left_results[3]):
                     plt.title("Different left")
                 axs[0].imshow(left)
-                axs[1].imshow(true_left)
+                axs[1].imshow(sample_left)
                 axs[2].imshow(images[0])
                 plt.show()
                 fig, axs = plt.subplots(1, 3)
                 if (right_results[3]):
                     plt.title("Different right")
                 axs[0].imshow(right)
-                axs[1].imshow(true_right)
+                axs[1].imshow(sample_right)
                 axs[2].imshow(images[1])
                 plt.show()
 
@@ -220,7 +222,7 @@ def save_cfg():
     detector_cfg = detector.default_detector_config()
     detector_cfg["length_per_10px"] = 0.65
     detector_cfg["color_cfg"]["amplify_thresh"] = (1000, 1000, 1000)
-    detector.save_json_cfg(detector_cfg, "config.json")
+    detector.save_json_cfg(detector_cfg, "./")
 
 
 if __name__ == "__main__":

@@ -6,6 +6,11 @@ import asyncio
 from .tf2_yolov4.anchors import YOLOV4_ANCHORS
 from .tf2_yolov4.model import YOLOv4
 import json
+import os
+
+CONFIG_FILE = "config.json"
+SAMPLE_LEFT_FILE = "sample_left.jpg"
+SAMPLE_RIGHT_FILE = "sample_right.jpg"
 
 
 def compare_size(lsize, rsize, detector_cfg):
@@ -119,7 +124,8 @@ def default_detector_config():
     return detector_config
 
 
-def save_json_cfg(cfg, path):
+def save_json_cfg(cfg, folder_path):
+    cfg_path = os.path.join(folder_path, CONFIG_FILE)
     if (cfg['detect_method'] == "edge"):
         d_kernel = cfg["d_cfg"]["d_kernel"]
         e_kernel = cfg["d_cfg"]["e_kernel"]
@@ -127,12 +133,13 @@ def save_json_cfg(cfg, path):
             cfg["d_cfg"]["d_kernel"] = d_kernel.shape
         if e_kernel is not None:
             cfg["d_cfg"]["e_kernel"] = e_kernel.shape
-    with open(path, 'w') as fo:
+    with open(cfg_path, 'w') as fo:
         json.dump(cfg, fo, indent=2)
 
 
-def load_json_cfg(path):
-    with open(path) as fi:
+def load_json_cfg(folder_path):
+    cfg_path = os.path.join(folder_path, CONFIG_FILE)
+    with open(cfg_path) as fi:
         cfg = json.load(fi)
         if (cfg['detect_method'] == "edge"):
             kernel = cfg['d_cfg']['kernel']
