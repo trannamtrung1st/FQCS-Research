@@ -103,12 +103,15 @@ def default_detector_config():
     color_cfg = default_color_config()
     err_cfg = default_err_config()
     d_cfg = default_thresh_config()
-    detector_config = dict(min_area=400 * 100 * 0.25,
+    detector_config = dict(min_width_per=0.1,
+                           min_height_per=0.7,
                            stop_condition=0,
                            detect_range=(0.2, 0.8),
                            length_per_10px=None,
                            length_unit="cm",
                            max_size_diff=0.3,
+                           frame_width=640,
+                           frame_height=480,
                            color_cfg=color_cfg,
                            detect_method="thresh",
                            err_cfg=err_cfg,
@@ -270,19 +273,16 @@ def find_contours_using_thresh(image, d_cfg):
     return cnts, thresh
 
 
-def find_contours_and_box(image: np.ndarray,
-                          find_contours_func,
-                          d_cfg,
-                          min_area=None):
+def find_contours_and_box(image: np.ndarray, find_contours_func, d_cfg,
+                          min_width, min_height):
     # start
     boxes = []
     cnts, proc = find_contours_func(image, d_cfg)
     helper.fill_contours(image, cnts)
     for c in cnts[:2]:
-        if cv2.contourArea(c) < min_area:
-            break
         rect, dimA, dimB, box, tl, tr, br, bl = helper.find_cnt_box(c, image)
-        boxes.append((rect, dimA, dimB, box, tl, tr, br, bl))
+        if (dimA >= min_height and dimB >= min_width):
+            boxes.append((rect, dimA, dimB, box, tl, tr, br, bl))
     return boxes, cnts, proc
 
 
@@ -302,7 +302,6 @@ def detect_pair_and_size(image: np.ndarray,
                          find_contours_func,
                          d_cfg,
                          boxes,
-                         min_area=None,
                          stop_condition=0,
                          detect_range=(0.2, 0.8)):
     # start

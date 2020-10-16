@@ -29,14 +29,17 @@ async def main():
     true_right_path = "true_right.jpg"
     uri = "test.mp4"
     cap = cv2.VideoCapture(uri)
+    frame_width, frame_height = detector_cfg["frame_width"], detector_cfg[
+        "frame_height"]
+    min_width, min_height = detector_cfg["min_width_per"], detector_cfg[
+        "min_height_per"]
+    min_width, min_height = frame_width * min_width, frame_height * min_height
     # cap.set(cv2.CAP_PROP_POS_FRAMES, 1100)
 
     true_left, true_right = None, None
     if os.path.exists(true_left_path):
         true_left = cv2.imread(true_left_path)
         true_right = cv2.imread(true_right_path)
-        detector_cfg[
-            'min_area'] = true_left.shape[0] * true_left.shape[1] * 0.25
 
     model = await model
     try:
@@ -49,7 +52,7 @@ async def main():
     found = False
     while not found:
         _, image = cap.read()
-        image = cv2.resize(image, (640, 480))
+        image = cv2.resize(image, (frame_width, frame_height))
 
         # output
         cv2.imshow("Original", image)
@@ -72,13 +75,13 @@ async def main():
             image,
             find_contours_func,
             d_cfg,
-            min_area=detector_cfg['min_area'])
+            min_width=min_width,
+            min_height=min_height)
         pair, image, split_left, split_right = detector.detect_pair_and_size(
             image,
             find_contours_func,
             d_cfg,
             boxes,
-            min_area=detector_cfg['min_area'],
             stop_condition=detector_cfg['stop_condition'],
             detect_range=detector_cfg['detect_range'])
 
