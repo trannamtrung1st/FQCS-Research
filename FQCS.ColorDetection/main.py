@@ -1,10 +1,10 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-from FQCS import helper
-from FQCS.tf2_yolov4 import helper as y_helper
+from FQCS_lib.FQCS import helper
+from FQCS_lib.FQCS.tf2_yolov4 import helper as y_helper
 import os
-from FQCS import detector
+from FQCS_lib.FQCS import detector
 import asyncio
 
 
@@ -68,10 +68,16 @@ async def main():
                 image, d_cfg["light_adj_thresh"], d_cfg["cr_to"])
             d_cfg["adj_cr_to"] = adj_cr_to
 
-        pair, image, proc, boxes, split_left, split_right = detector.detect_pair_and_size(
+        boxes, cnts, proc = detector.find_contours_and_box(
             image,
             find_contours_func,
             d_cfg,
+            min_area=detector_cfg['min_area'])
+        pair, image, split_left, split_right = detector.detect_pair_and_size(
+            image,
+            find_contours_func,
+            d_cfg,
+            boxes,
             min_area=detector_cfg['min_area'],
             stop_condition=detector_cfg['stop_condition'],
             detect_range=detector_cfg['detect_range'])
@@ -81,7 +87,7 @@ async def main():
         per_10px = detector_cfg["length_per_10px"]
         sizes = []
         for b in boxes:
-            dimA, dimB, box, tl, tr, br, bl = b
+            rect, dimA, dimB, box, tl, tr, br, bl = b
             lH, lW = helper.calculate_length(
                 dimA, per_10px), helper.calculate_length(dimB, per_10px)
             sizes.append((lH, lW))

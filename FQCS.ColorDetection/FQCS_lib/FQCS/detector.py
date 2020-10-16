@@ -270,6 +270,22 @@ def find_contours_using_thresh(image, d_cfg):
     return cnts, thresh
 
 
+def find_contours_and_box(image: np.ndarray,
+                          find_contours_func,
+                          d_cfg,
+                          min_area=None):
+    # start
+    boxes = []
+    cnts, proc = find_contours_func(image, d_cfg)
+    helper.fill_contours(image, cnts)
+    for c in cnts[:2]:
+        if cv2.contourArea(c) < min_area:
+            break
+        rect, dimA, dimB, box, tl, tr, br, bl = helper.find_cnt_box(c, image)
+        boxes.append((rect, dimA, dimB, box, tl, tr, br, bl))
+    return boxes, cnts, proc
+
+
 def detect_one_and_size(orig_img: np.ndarray, image: np.ndarray,
                         find_contours_func, d_cfg):
     # start
@@ -285,23 +301,17 @@ def detect_one_and_size(orig_img: np.ndarray, image: np.ndarray,
 def detect_pair_and_size(image: np.ndarray,
                          find_contours_func,
                          d_cfg,
+                         boxes,
                          min_area=None,
                          stop_condition=0,
                          detect_range=(0.2, 0.8)):
     # start
-    image = image.copy()
     pair = []
     h, w = image.shape[:2]
-    boxes = []
-    cnts, proc = find_contours_func(image, d_cfg)
-    helper.fill_contours(image, cnts)
     min_x, max_x = w, 0
     from_x, to_x = w * detect_range[0], w * detect_range[1]
-    for c in cnts[:2]:
-        if cv2.contourArea(c) < min_area:
-            break
-        rect, dimA, dimB, box, tl, tr, br, bl = helper.find_cnt_box(c, image)
-        boxes.append((dimA, dimB, box, tl, tr, br, bl))
+    for item in boxes:
+        rect, dimA, dimB, box, tl, tr, br, bl = item
         cur_min_x = min(tl[0], tr[0], br[0], bl[0])
         cur_max_x = max(tl[0], tr[0], br[0], bl[0])
         min_x = min(cur_min_x, min_x)
@@ -329,8 +339,7 @@ def detect_pair_and_size(image: np.ndarray,
                 pair = [left, right]
 
     pair = sorted(pair, key=lambda x: x[1][0][0], reverse=True)
-    return pair if len(
-        pair) == 2 else None, image, proc, boxes, split_left, split_right
+    return pair if len(pair) == 2 else None, image, split_left, split_right
 
 
 def split_pair(img, cnt):
