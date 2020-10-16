@@ -2,7 +2,7 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 from PySide2.QtCore import *
 from views.main_window import Ui_MainWindow
-from widgets.detection_cfg_screen import DetectionCfgScreen
+from widgets.detection_screen import DetectionScreen
 
 
 class MainWindow(QMainWindow):
@@ -13,5 +13,8 @@ class MainWindow(QMainWindow):
         self.showFullScreen()
 
         # screens
-        self.screen_1 = DetectionCfgScreen()
+        self.screen_1 = DetectionScreen(on_capture_clicked=self.change_screen)
         self.setCentralWidget(self.screen_1)
+
+    def change_screen(self):
+        self.setCentralWidget(QWidget())

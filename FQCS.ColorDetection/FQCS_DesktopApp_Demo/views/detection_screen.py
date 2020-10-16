@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'detection_cfg_screengBgVTN.ui'
+## Form generated from reading UI file 'detection_screenpPNZza.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.15.1
 ##
@@ -13,18 +13,18 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 
-class Ui_DetectionCfgScreen(object):
-    def setupUi(self, DetectionCfgScreen):
-        if not DetectionCfgScreen.objectName():
-            DetectionCfgScreen.setObjectName(u"DetectionCfgScreen")
-        DetectionCfgScreen.resize(1355, 805)
-        DetectionCfgScreen.setAutoFillBackground(False)
-        DetectionCfgScreen.setStyleSheet(u"background:#E5E5E5")
-        self.verticalLayout = QVBoxLayout(DetectionCfgScreen)
+class Ui_DetectionScreen(object):
+    def setupUi(self, DetectionScreen):
+        if not DetectionScreen.objectName():
+            DetectionScreen.setObjectName(u"DetectionScreen")
+        DetectionScreen.resize(1355, 805)
+        DetectionScreen.setAutoFillBackground(False)
+        DetectionScreen.setStyleSheet(u"background:#E5E5E5")
+        self.verticalLayout = QVBoxLayout(DetectionScreen)
         self.verticalLayout.setSpacing(0)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.containerScreen = QWidget(DetectionCfgScreen)
+        self.containerScreen = QWidget(DetectionScreen)
         self.containerScreen.setObjectName(u"containerScreen")
         self.containerScreen.setAutoFillBackground(False)
         self.gridLayout = QGridLayout(self.containerScreen)
@@ -43,13 +43,6 @@ class Ui_DetectionCfgScreen(object):
 
         self.gridLayout.addWidget(self.screen2, 0, 1, 1, 1)
 
-        self.screen3 = QLabel(self.containerScreen)
-        self.screen3.setObjectName(u"screen3")
-        self.screen3.setStyleSheet(u"background-color: #AFF;font-weight:bold;")
-        self.screen3.setAlignment(Qt.AlignCenter)
-
-        self.gridLayout.addWidget(self.screen3, 1, 0, 1, 1)
-
         self.screen4 = QLabel(self.containerScreen)
         self.screen4.setObjectName(u"screen4")
         self.screen4.setStyleSheet(u"background-color: #AFF;font-weight:bold;")
@@ -60,7 +53,7 @@ class Ui_DetectionCfgScreen(object):
 
         self.verticalLayout.addWidget(self.containerScreen)
 
-        self.containerConfig = QWidget(DetectionCfgScreen)
+        self.containerConfig = QWidget(DetectionScreen)
         self.containerConfig.setObjectName(u"containerConfig")
         self.containerConfig.setAutoFillBackground(False)
         self.containerConfig.setStyleSheet(u"background-color: #EEEEEE")
@@ -254,6 +247,36 @@ class Ui_DetectionCfgScreen(object):
 
         self.gridLayout_2.addWidget(self.groupInputTemplate_2, 1, 2, 1, 1)
 
+        self.groupSpinTemplate = QGroupBox(self.containerMid)
+        self.groupSpinTemplate.setObjectName(u"groupSpinTemplate")
+        self.verticalLayout_4 = QVBoxLayout(self.groupSpinTemplate)
+        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
+        self.verticalLayout_4.setContentsMargins(-1, 0, -1, 0)
+        self.spinTemplate = QSpinBox(self.groupSpinTemplate)
+        self.spinTemplate.setObjectName(u"spinTemplate")
+
+        self.verticalLayout_4.addWidget(self.spinTemplate)
+
+
+        self.gridLayout_2.addWidget(self.groupSpinTemplate, 1, 1, 1, 1)
+
+        self.groupCbbTemplate_4 = QGroupBox(self.containerMid)
+        self.groupCbbTemplate_4.setObjectName(u"groupCbbTemplate_4")
+        self.verticalLayout_3 = QVBoxLayout(self.groupCbbTemplate_4)
+        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
+        self.verticalLayout_3.setContentsMargins(-1, 0, -1, 0)
+        self.cbbTemplate = QComboBox(self.groupCbbTemplate_4)
+        self.cbbTemplate.addItem("")
+        self.cbbTemplate.addItem("")
+        self.cbbTemplate.setObjectName(u"cbbTemplate")
+        self.cbbTemplate.setAutoFillBackground(False)
+        self.cbbTemplate.setStyleSheet(u"height:22px")
+
+        self.verticalLayout_3.addWidget(self.cbbTemplate)
+
+
+        self.gridLayout_2.addWidget(self.groupCbbTemplate_4, 2, 1, 1, 1)
+
 
         self.horizontalLayout.addWidget(self.containerMid)
 
@@ -269,10 +292,10 @@ class Ui_DetectionCfgScreen(object):
         self.verticalLayout_17 = QVBoxLayout(self.containerVerticalBtn)
         self.verticalLayout_17.setObjectName(u"verticalLayout_17")
         self.verticalLayout_17.setContentsMargins(0, 0, 0, 0)
-        self.btnTemplate = QPushButton(self.containerVerticalBtn)
-        self.btnTemplate.setObjectName(u"btnTemplate")
+        self.btnCapture = QPushButton(self.containerVerticalBtn)
+        self.btnCapture.setObjectName(u"btnCapture")
 
-        self.verticalLayout_17.addWidget(self.btnTemplate, 0, Qt.AlignTop)
+        self.verticalLayout_17.addWidget(self.btnCapture, 0, Qt.AlignTop)
 
 
         self.verticalLayout_16.addWidget(self.containerVerticalBtn, 0, Qt.AlignTop)
@@ -312,47 +335,51 @@ class Ui_DetectionCfgScreen(object):
         self.verticalLayout.setStretch(0, 8)
         self.verticalLayout.setStretch(1, 2)
 
-        self.retranslateUi(DetectionCfgScreen)
+        self.retranslateUi(DetectionScreen)
 
-        QMetaObject.connectSlotsByName(DetectionCfgScreen)
+        QMetaObject.connectSlotsByName(DetectionScreen)
     # setupUi
 
-    def retranslateUi(self, DetectionCfgScreen):
-        DetectionCfgScreen.setWindowTitle(QCoreApplication.translate("DetectionCfgScreen", u"Form", None))
-        self.screen1.setText(QCoreApplication.translate("DetectionCfgScreen", u"SCREEN", None))
-        self.screen2.setText(QCoreApplication.translate("DetectionCfgScreen", u"SCREEN", None))
-        self.screen3.setText(QCoreApplication.translate("DetectionCfgScreen", u"SCREEN", None))
-        self.screen4.setText(QCoreApplication.translate("DetectionCfgScreen", u"SCREEN", None))
-        self.lblTitle.setText(QCoreApplication.translate("DetectionCfgScreen", u"THIS IS THE CONFIGURATION TITLE", None))
-        self.groupCbbTemplate.setTitle(QCoreApplication.translate("DetectionCfgScreen", u"Label combo box", None))
-        self.cbbTemplate_5.setItemText(0, QCoreApplication.translate("DetectionCfgScreen", u"Item 1", None))
-        self.cbbTemplate_5.setItemText(1, QCoreApplication.translate("DetectionCfgScreen", u"Item 2", None))
+    def retranslateUi(self, DetectionScreen):
+        DetectionScreen.setWindowTitle(QCoreApplication.translate("DetectionScreen", u"Form", None))
+        self.screen1.setText(QCoreApplication.translate("DetectionScreen", u"SCREEN", None))
+        self.screen2.setText(QCoreApplication.translate("DetectionScreen", u"SCREEN", None))
+        self.screen4.setText(QCoreApplication.translate("DetectionScreen", u"SCREEN", None))
+        self.lblTitle.setText(QCoreApplication.translate("DetectionScreen", u"THIS IS THE CONFIGURATION TITLE", None))
+        self.groupCbbTemplate.setTitle(QCoreApplication.translate("DetectionScreen", u"Label combo box", None))
+        self.cbbTemplate_5.setItemText(0, QCoreApplication.translate("DetectionScreen", u"Item 1", None))
+        self.cbbTemplate_5.setItemText(1, QCoreApplication.translate("DetectionScreen", u"Item 2", None))
 
-        self.groupCbbTemplate_2.setTitle(QCoreApplication.translate("DetectionCfgScreen", u"Label combo box", None))
-        self.cbbTemplate_6.setItemText(0, QCoreApplication.translate("DetectionCfgScreen", u"Item 1", None))
-        self.cbbTemplate_6.setItemText(1, QCoreApplication.translate("DetectionCfgScreen", u"Item 2", None))
+        self.groupCbbTemplate_2.setTitle(QCoreApplication.translate("DetectionScreen", u"Label combo box", None))
+        self.cbbTemplate_6.setItemText(0, QCoreApplication.translate("DetectionScreen", u"Item 1", None))
+        self.cbbTemplate_6.setItemText(1, QCoreApplication.translate("DetectionScreen", u"Item 2", None))
 
-        self.groupCbbTemplate_3.setTitle(QCoreApplication.translate("DetectionCfgScreen", u"Label combo box", None))
-        self.cbbTemplate_7.setItemText(0, QCoreApplication.translate("DetectionCfgScreen", u"Item 1", None))
-        self.cbbTemplate_7.setItemText(1, QCoreApplication.translate("DetectionCfgScreen", u"Item 2", None))
+        self.groupCbbTemplate_3.setTitle(QCoreApplication.translate("DetectionScreen", u"Label combo box", None))
+        self.cbbTemplate_7.setItemText(0, QCoreApplication.translate("DetectionScreen", u"Item 1", None))
+        self.cbbTemplate_7.setItemText(1, QCoreApplication.translate("DetectionScreen", u"Item 2", None))
 
-        self.groupSliderTemplate.setTitle(QCoreApplication.translate("DetectionCfgScreen", u"Label slider", None))
-        self.groupSliderTemplate_3.setTitle(QCoreApplication.translate("DetectionCfgScreen", u"Label slider", None))
-        self.groupInputTemplate.setTitle(QCoreApplication.translate("DetectionCfgScreen", u"Label input", None))
+        self.groupSliderTemplate.setTitle(QCoreApplication.translate("DetectionScreen", u"Label slider", None))
+        self.groupSliderTemplate_3.setTitle(QCoreApplication.translate("DetectionScreen", u"Label slider", None))
+        self.groupInputTemplate.setTitle(QCoreApplication.translate("DetectionScreen", u"Label input", None))
         self.inpTemplate.setInputMask("")
         self.inpTemplate.setText("")
-        self.inpTemplate.setPlaceholderText(QCoreApplication.translate("DetectionCfgScreen", u"Input something", None))
-        self.groupSliderTemplate_2.setTitle(QCoreApplication.translate("DetectionCfgScreen", u"Label slider", None))
-        self.groupColorPickerTemplate.setTitle(QCoreApplication.translate("DetectionCfgScreen", u"Label color picker", None))
+        self.inpTemplate.setPlaceholderText(QCoreApplication.translate("DetectionScreen", u"Input something", None))
+        self.groupSliderTemplate_2.setTitle(QCoreApplication.translate("DetectionScreen", u"Label slider", None))
+        self.groupColorPickerTemplate.setTitle(QCoreApplication.translate("DetectionScreen", u"Label color picker", None))
         self.btnColorFromTemplate.setText("")
-        self.lblConnectTemplate.setText(QCoreApplication.translate("DetectionCfgScreen", u"---", None))
+        self.lblConnectTemplate.setText(QCoreApplication.translate("DetectionScreen", u"---", None))
         self.btnColorToTemplate.setText("")
-        self.groupInputTemplate_2.setTitle(QCoreApplication.translate("DetectionCfgScreen", u"Label input", None))
+        self.groupInputTemplate_2.setTitle(QCoreApplication.translate("DetectionScreen", u"Label input", None))
         self.inpTemplate_2.setInputMask("")
         self.inpTemplate_2.setText("")
-        self.inpTemplate_2.setPlaceholderText(QCoreApplication.translate("DetectionCfgScreen", u"Input something", None))
-        self.btnTemplate.setText(QCoreApplication.translate("DetectionCfgScreen", u"CAPTURE", None))
-        self.btnTemplate_2.setText(QCoreApplication.translate("DetectionCfgScreen", u"BACK", None))
-        self.btnTemplate_3.setText(QCoreApplication.translate("DetectionCfgScreen", u"NEXT", None))
+        self.inpTemplate_2.setPlaceholderText(QCoreApplication.translate("DetectionScreen", u"Input something", None))
+        self.groupSpinTemplate.setTitle(QCoreApplication.translate("DetectionScreen", u"Label spin input", None))
+        self.groupCbbTemplate_4.setTitle(QCoreApplication.translate("DetectionScreen", u"Label combo box", None))
+        self.cbbTemplate.setItemText(0, QCoreApplication.translate("DetectionScreen", u"Item 1", None))
+        self.cbbTemplate.setItemText(1, QCoreApplication.translate("DetectionScreen", u"Item 2", None))
+
+        self.btnCapture.setText(QCoreApplication.translate("DetectionScreen", u"CAPTURE", None))
+        self.btnTemplate_2.setText(QCoreApplication.translate("DetectionScreen", u"BACK", None))
+        self.btnTemplate_3.setText(QCoreApplication.translate("DetectionScreen", u"NEXT", None))
     # retranslateUi
 

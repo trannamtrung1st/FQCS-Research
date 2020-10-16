@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>DetectionCfgScreen</class>
- <widget class="QWidget" name="DetectionCfgScreen">
+ <class>DetectionScreen</class>
+ <widget class="QWidget" name="DetectionScreen">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -56,19 +56,6 @@
       </item>
       <item row="0" column="1">
        <widget class="QLabel" name="screen2">
-        <property name="styleSheet">
-         <string notr="true">background-color: #AFF;font-weight:bold;</string>
-        </property>
-        <property name="text">
-         <string>SCREEN</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="screen3">
         <property name="styleSheet">
          <string notr="true">background-color: #AFF;font-weight:bold;</string>
         </property>
@@ -447,6 +434,59 @@ font-weight:bold;</string>
               </layout>
              </widget>
             </item>
+            <item row="1" column="1">
+             <widget class="QGroupBox" name="groupSpinTemplate">
+              <property name="title">
+               <string>Label spin input</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_4">
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QSpinBox" name="spinTemplate"/>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QGroupBox" name="groupCbbTemplate_4">
+              <property name="title">
+               <string>Label combo box</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_3">
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QComboBox" name="cbbTemplate">
+                 <property name="autoFillBackground">
+                  <bool>false</bool>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">height:22px</string>
+                 </property>
+                 <item>
+                  <property name="text">
+                   <string>Item 1</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Item 2</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>
@@ -474,7 +514,7 @@ font-weight:bold;</string>
                 <number>0</number>
                </property>
                <item alignment="Qt::AlignTop">
-                <widget class="QPushButton" name="btnTemplate">
+                <widget class="QPushButton" name="btnCapture">
                  <property name="text">
                   <string>CAPTURE</string>
                  </property>
