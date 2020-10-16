@@ -1,10 +1,10 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-from FQCS_lib.FQCS import helper
-from FQCS_lib.FQCS.tf2_yolov4 import helper as y_helper
+from FQCS import helper
+from FQCS.tf2_yolov4 import helper as y_helper
 import os
-from FQCS_lib.FQCS import detector
+from FQCS import detector
 import asyncio
 
 
