@@ -8,6 +8,7 @@ from FQCS import detector
 import asyncio
 import os
 
+
 async def main():
     config_folder = "./"
     sample_left_path = os.path.join(config_folder, detector.SAMPLE_LEFT_FILE)
@@ -79,11 +80,12 @@ async def main():
             d_cfg,
             min_width=min_width,
             min_height=min_height)
-        pair, image, split_left, split_right = detector.detect_pair_and_size(
+        pair, image, split_left, split_right, boxes = detector.detect_pair_and_size(
             image,
             find_contours_func,
             d_cfg,
             boxes,
+            cnts,
             stop_condition=detector_cfg['stop_condition'],
             detect_range=detector_cfg['detect_range'])
 

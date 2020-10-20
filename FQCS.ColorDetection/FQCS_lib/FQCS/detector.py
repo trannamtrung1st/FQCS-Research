@@ -302,13 +302,14 @@ def detect_one_and_size(orig_img: np.ndarray, image: np.ndarray,
     c = cnts[0]
     rect, dimA, dimB, box, tl, tr, br, bl = helper.find_cnt_box(c, image)
     warped = helper.get_warped_box(image, rect, box)
-    return (warped, box, dimA, dimB)
+    return (warped, (rect, dimA, dimB, box, tl, tr, br, bl))
 
 
 def detect_pair_and_size(image: np.ndarray,
                          find_contours_func,
                          d_cfg,
                          boxes,
+                         cnts,
                          stop_condition=0,
                          detect_range=(0.2, 0.8)):
     # start
@@ -343,9 +344,11 @@ def detect_pair_and_size(image: np.ndarray,
                                         d_cfg)
             if (left is not None and right is not None):
                 pair = [left, right]
+                boxes = [left[1], right[1]]
 
     pair = sorted(pair, key=lambda x: x[1][0][0], reverse=True)
-    return pair if len(pair) == 2 else None, image, split_left, split_right
+    return pair if len(
+        pair) == 2 else None, image, split_left, split_right, boxes
 
 
 def split_pair(img, cnt):
