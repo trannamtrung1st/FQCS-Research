@@ -105,7 +105,8 @@ async def main():
                         cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 0), 2)
         cv2.imshow("Processed", image)
         cv2.imshow("Contours processed", proc)
-        cv2.waitKey(1)
+        # cv2.waitKey(1)
+        cv2.waitKey(0)
 
         if (pair is not None):
             found = True
@@ -136,9 +137,6 @@ async def main():
                 cv2.imwrite(sample_left_path, left)
                 cv2.imwrite(sample_right_path, right)
             else:
-                # test only
-                left = sample_left
-
                 images = [left, right]
                 err_task = asyncio.create_task(
                     detector.detect_errors(model, images, err_cfg["img_size"]))
