@@ -103,8 +103,7 @@ def default_d_config():
                 e_kernel=None,
                 cr_from=(0, 0, 0),
                 cr_to=cr_to,
-                adj_cr_to=cr_to,
-                light_adj_thresh=65)
+                adj_cr_to=cr_to)
 
 
 def default_color_config():
