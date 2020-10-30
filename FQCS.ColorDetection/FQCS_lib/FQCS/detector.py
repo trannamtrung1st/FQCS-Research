@@ -91,6 +91,7 @@ def default_range_config():
 
 
 def default_d_config():
+    cr_to = (180, 255 * 0.5, 255 * 0.5)
     return dict(bg_thresh=110,
                 adj_bg_thresh=110,
                 light_adj_thresh=65,
