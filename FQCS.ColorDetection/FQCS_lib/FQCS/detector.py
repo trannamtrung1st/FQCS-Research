@@ -90,6 +90,23 @@ def default_range_config():
                 light_adj_thresh=65)
 
 
+def default_d_config():
+    return dict(bg_thresh=110,
+                adj_bg_thresh=110,
+                light_adj_thresh=65,
+                alpha=1.0,
+                beta=0,
+                threshold1=40,
+                threshold2=100,
+                kernel=(5, 5),
+                d_kernel=np.ones((5, 5)),
+                e_kernel=None,
+                cr_from=(0, 0, 0),
+                cr_to=cr_to,
+                adj_cr_to=cr_to,
+                light_adj_thresh=65)
+
+
 def default_color_config():
     return dict(img_size=(32, 64),
                 blur_val=0.05,
@@ -107,7 +124,7 @@ def default_color_config():
 def default_detector_config():
     color_cfg = default_color_config()
     err_cfg = default_err_config()
-    d_cfg = default_thresh_config()
+    d_cfg = default_d_config()
     detector_config = dict(min_width_per=0.1,
                            min_height_per=0.7,
                            stop_condition=0,
@@ -190,18 +207,24 @@ def load_json_cfg(folder_path):
 def preprocess_for_color_diff(img,
                               img_size=(32, 64),
                               blur_val=0.05,
-                              alpha=1,
+                              alpha: float=1,
                               beta=-150,
                               sat_adj=2):
     if (sat_adj != 1):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         img[:, :, 1] *= sat_adj
         img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
+
     img = helper.change_contrast_and_brightness(img, alpha, beta)
+    ksize_w = round(img.shape[0] * blur_val)
+    ksize_w = ksize_w if ksize_w % 2 == 1 else ksize_w + 1
+    ksize_h = round(img.shape[1] * blur_val)
+    ksize_h = ksize_h if ksize_h % 2 == 1 else ksize_h + 1
+    
     if blur_val is not None:
         img = cv2.blur(
             img,
-            (round(img.shape[0] * blur_val), round(img.shape[1] * blur_val)))
+            (ksize_w,ksize_h))
     img = cv2.resize(img, img_size)
     return img
 
