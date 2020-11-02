@@ -230,7 +230,7 @@ def preprocess_for_color_diff(img,
 
 
 async def find_color_diff(test, true, amplify_thresh, supp_thresh,
-                          amplify_rate, max_diff):
+                          amplify_rate, max_diff, apply_amp):
     test_hist = helper.get_hist_bgr(test)
     true_hist = helper.get_hist_bgr(true)
     list_dist = np.zeros((3, ))
@@ -240,7 +240,7 @@ async def find_color_diff(test, true, amplify_thresh, supp_thresh,
         diff = np.abs(test_hist[i] - true_hist[i])
         diff[diff < supp_thresh] = 0
         dist = np.linalg.norm(diff)
-        if (dist > amplify_thresh[i]):
+        if (apply_amp and dist > amplify_thresh[i]):
             dist *= (dist / amplify_thresh[i])**amplify_rate
         list_dist[i] = dist
     sum_dist = np.sum(list_dist)
@@ -255,14 +255,15 @@ def detect_color_difference(left,
                             amplify_thresh=None,
                             supp_thresh=None,
                             amplify_rate=None,
-                            max_diff=None):
+                            max_diff=None,
+                            apply_amp=True):
     # START
     left_task = asyncio.create_task(
         find_color_diff(left, true_left, amplify_thresh, supp_thresh,
-                        amplify_rate, max_diff))
+                        amplify_rate, max_diff, apply_amp))
     right_task = asyncio.create_task(
         find_color_diff(right, true_right, amplify_thresh, supp_thresh,
-                        amplify_rate, max_diff))
+                        amplify_rate, max_diff, apply_amp))
     return left_task, right_task
 
 
