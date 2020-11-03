@@ -162,6 +162,28 @@ async def main():
                     c_cfg['amplify_thresh'], c_cfg['supp_thresh'],
                     c_cfg['amplify_rate'], c_cfg['max_diff'])
 
+                # Similarity compare
+                sim_cfg = detector_cfg["sim_cfg"]
+                is_asym_diff_left, avg_asym_left, avg_amp_left, recalc_left = (
+                    await detector.detect_asym_diff(
+                        pre_left, pre_sample_left, sim_cfg['segments_list'],
+                        sim_cfg['C1'], sim_cfg['C2'], sim_cfg['psnr_trigger'],
+                        sim_cfg['asym_amp_thresh'], sim_cfg['asym_amp_rate'],
+                        sim_cfg['re_calc_factor_left'],
+                        sim_cfg['min_similarity']))[:4]
+                is_asym_diff_right, avg_asym_right, avg_amp_right, recalc_right = (
+                    await detector.detect_asym_diff(
+                        pre_right, pre_sample_right, sim_cfg['segments_list'],
+                        sim_cfg['C1'], sim_cfg['C2'], sim_cfg['psnr_trigger'],
+                        sim_cfg['asym_amp_thresh'], sim_cfg['asym_amp_rate'],
+                        sim_cfg['re_calc_factor_right'],
+                        sim_cfg['min_similarity']))[:4]
+                print("Min similarity: ", sim_cfg['min_similarity'])
+                print("Left asymc: ", is_asym_diff_left, avg_asym_left,
+                      avg_amp_left, recalc_left)
+                print("Right asymc: ", is_asym_diff_right, avg_asym_right,
+                      avg_amp_right, recalc_right)
+
                 left_results = await left_task
                 right_results = await right_task
                 boxes, scores, classes, valid_detections = await err_task

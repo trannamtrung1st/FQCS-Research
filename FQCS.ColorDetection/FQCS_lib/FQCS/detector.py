@@ -121,10 +121,37 @@ def default_color_config():
                 max_diff=0.2)
 
 
+def default_color_config():
+    return dict(img_size=(32, 64),
+                blur_val=0.05,
+                alpha_r=1,
+                alpha_l=1,
+                beta_r=-150,
+                beta_l=-150,
+                sat_adj=2,
+                supp_thresh=10,
+                amplify_thresh=(None, None, None),
+                amplify_rate=20,
+                max_diff=0.2)
+
+
+def default_sim_config():
+    return dict(C1=6.5025 * 30,
+                C2=58.5225 * 30,
+                psnr_trigger=40,
+                asym_amp_thresh=None,
+                asym_amp_rate=7,
+                min_similarity=0.95,
+                re_calc_factor_left=1,
+                re_calc_factor_right=1,
+                segments_list=[4, 2, 1])
+
+
 def default_detector_config():
     color_cfg = default_color_config()
     err_cfg = default_err_config()
     d_cfg = default_d_config()
+    sim_cfg = default_sim_config()
     detector_config = dict(min_width_per=0.1,
                            min_height_per=0.7,
                            stop_condition=0,
@@ -135,6 +162,7 @@ def default_detector_config():
                            frame_width=640,
                            frame_height=480,
                            color_cfg=color_cfg,
+                           sim_cfg=sim_cfg,
                            detect_method="thresh",
                            err_cfg=err_cfg,
                            d_cfg=d_cfg)
@@ -143,13 +171,12 @@ def default_detector_config():
 
 def save_json_cfg(cfg, folder_path):
     cfg_path = os.path.join(folder_path, CONFIG_FILE)
-    if (cfg['detect_method'] == "edge"):
-        d_kernel = cfg["d_cfg"]["d_kernel"]
-        e_kernel = cfg["d_cfg"]["e_kernel"]
-        if d_kernel is not None:
-            cfg["d_cfg"]["d_kernel"] = d_kernel.shape
-        if e_kernel is not None:
-            cfg["d_cfg"]["e_kernel"] = e_kernel.shape
+    d_kernel = cfg["d_cfg"]["d_kernel"]
+    e_kernel = cfg["d_cfg"]["e_kernel"]
+    if d_kernel is not None:
+        cfg["d_cfg"]["d_kernel"] = d_kernel.shape
+    if e_kernel is not None:
+        cfg["d_cfg"]["e_kernel"] = e_kernel.shape
     with open(cfg_path, 'w') as fo:
         json.dump(cfg, fo, indent=2)
 
@@ -158,29 +185,26 @@ def load_json_cfg(folder_path):
     cfg_path = os.path.join(folder_path, CONFIG_FILE)
     with open(cfg_path) as fi:
         cfg = json.load(fi)
-        if (cfg['detect_method'] == "edge"):
-            kernel = cfg['d_cfg']['kernel']
-            kernel = (kernel[0], kernel[1])
-            cfg['d_cfg']['kernel'] = kernel
-            d_kernel = cfg['d_cfg']['d_kernel']
-            e_kernel = cfg['d_cfg']['e_kernel']
-            if d_kernel is not None:
-                d_kernel = np.ones((d_kernel[0], d_kernel[1]))
-                cfg['d_cfg']['d_kernel'] = d_kernel
-            if e_kernel is not None:
-                e_kernel = np.ones((e_kernel[0], e_kernel[1]))
-                cfg['d_cfg']['e_kernel'] = e_kernel
-        elif (cfg['detect_method'] == "range"):
-            cr_from = cfg['d_cfg']['cr_from']
-            cr_to = cfg['d_cfg']['cr_to']
-            cr_from = (cr_from[0], cr_from[1], cr_from[2])
-            cr_to = (cr_to[0], cr_to[1], cr_to[2])
-            cfg['d_cfg']['cr_from'] = cr_from
-            cfg['d_cfg']['cr_to'] = cr_to
-            cfg['d_cfg']['adj_cr_to'] = cr_to
-        elif (cfg['detect_method'] == 'thresh'):
-            bg_thresh = cfg['d_cfg']['bg_thresh']
-            cfg['d_cfg']['adj_bg_thresh'] = bg_thresh
+        kernel = cfg['d_cfg']['kernel']
+        kernel = (kernel[0], kernel[1])
+        cfg['d_cfg']['kernel'] = kernel
+        d_kernel = cfg['d_cfg']['d_kernel']
+        e_kernel = cfg['d_cfg']['e_kernel']
+        if d_kernel is not None:
+            d_kernel = np.ones((d_kernel[0], d_kernel[1]))
+            cfg['d_cfg']['d_kernel'] = d_kernel
+        if e_kernel is not None:
+            e_kernel = np.ones((e_kernel[0], e_kernel[1]))
+            cfg['d_cfg']['e_kernel'] = e_kernel
+        cr_from = cfg['d_cfg']['cr_from']
+        cr_to = cfg['d_cfg']['cr_to']
+        cr_from = (cr_from[0], cr_from[1], cr_from[2])
+        cr_to = (cr_to[0], cr_to[1], cr_to[2])
+        cfg['d_cfg']['cr_from'] = cr_from
+        cfg['d_cfg']['cr_to'] = cr_to
+        cfg['d_cfg']['adj_cr_to'] = cr_to
+        bg_thresh = cfg['d_cfg']['bg_thresh']
+        cfg['d_cfg']['adj_bg_thresh'] = bg_thresh
 
         detect_range = cfg['detect_range']
         detect_range = (detect_range[0], detect_range[1])
@@ -207,7 +231,7 @@ def load_json_cfg(folder_path):
 def preprocess_for_color_diff(img,
                               img_size=(32, 64),
                               blur_val=0.05,
-                              alpha: float=1,
+                              alpha: float = 1,
                               beta=-150,
                               sat_adj=2):
     if (sat_adj != 1):
@@ -220,13 +244,65 @@ def preprocess_for_color_diff(img,
     ksize_w = ksize_w if ksize_w % 2 == 1 else ksize_w + 1
     ksize_h = round(img.shape[1] * blur_val)
     ksize_h = ksize_h if ksize_h % 2 == 1 else ksize_h + 1
-    
+
     if blur_val is not None:
-        img = cv2.blur(
-            img,
-            (ksize_w,ksize_h))
+        img = cv2.blur(img, (ksize_w, ksize_h))
     img = cv2.resize(img, img_size)
     return img
+
+
+async def compare_asymmetry(test, true, segments, C1, C2, psnrTriggerValue,
+                            amp_thresh, amp_rate):
+    ver_step = test.shape[0] // segments
+    hor_step = test.shape[1] // segments
+    results = np.ones((segments, segments, 3))
+    amp_results = np.ones((segments, segments, 3))
+
+    for v in range(segments):
+        for h in range(segments):
+            sub_test = test[v * ver_step:(v + 1) * ver_step,
+                            h * hor_step:(h + 1) * hor_step]
+            sub_true = true[v * ver_step:(v + 1) * ver_step,
+                            h * hor_step:(h + 1) * hor_step]
+            psnrv = helper.getPSNR(sub_test, sub_true)
+            mssimv = None
+            res_str = None
+            if (psnrv and psnrv < psnrTriggerValue):
+                mssimv = np.array(helper.getMSSISM(sub_test, sub_true, C1, C2))
+                mssimv = mssimv[:3]
+                results[v, h] = mssimv
+                if (amp_thresh is not None):
+                    triggered_range = mssimv < amp_thresh
+                    triggered = mssimv[triggered_range]
+                    if (triggered.any()):
+                        min_val = np.min(triggered)
+                        mssimv[triggered_range] -= (
+                            (amp_thresh + min_val) /
+                            (triggered + min_val + 1e-10))**amp_rate
+                        amp_results[v, h] = mssimv
+
+    avg = np.mean(results)
+    avg_amp = np.mean(amp_results)
+    return results, avg, avg_amp
+
+
+async def detect_asym_diff(test, true, segments_list, C1, C2, psnrTriggerValue,
+                           amp_thresh, amp_rate, re_calc_factor,
+                           min_similarity):
+    count_segments = len(segments_list)
+    results = np.ones(count_segments)
+    amp_results = np.ones(count_segments)
+    for i in range(count_segments):
+        asym_res, avg_asym, avg_amp = await compare_asymmetry(
+            test, true, segments_list[i], C1, C2, psnrTriggerValue, amp_thresh,
+            amp_rate)
+        results[i] = avg_asym
+        amp_results[i] = avg_amp
+    avg = np.mean(results)
+    avg_amp = np.mean(amp_results)
+    avg_recalc = avg_amp * re_calc_factor
+    is_diff = avg_recalc < min_similarity
+    return is_diff, avg, avg_amp, avg_recalc, results, amp_results
 
 
 async def find_color_diff(test, true, amplify_thresh, supp_thresh,
