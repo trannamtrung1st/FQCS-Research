@@ -270,15 +270,14 @@ async def compare_asymmetry(test, true, segments, C1, C2, psnrTriggerValue,
             if (psnrv and psnrv < psnrTriggerValue):
                 mssimv = np.array(helper.getMSSISM(sub_test, sub_true, C1, C2))
                 mssimv = mssimv[:3]
+                mssimv[mssimv <= 0] = (1 / 10**(amp_rate - 1))
                 results[v, h] = mssimv
                 if (amp_thresh is not None):
                     triggered_range = mssimv < amp_thresh
                     triggered = mssimv[triggered_range]
                     if (triggered.any()):
-                        min_val = np.min(triggered)
-                        mssimv[triggered_range] -= (
-                            (amp_thresh + min_val) /
-                            (triggered + min_val + 1e-10))**amp_rate
+                        mssimv[triggered_range] /= (amp_thresh /
+                                                    triggered)**amp_rate
                         amp_results[v, h] = mssimv
 
     avg = np.mean(results)
