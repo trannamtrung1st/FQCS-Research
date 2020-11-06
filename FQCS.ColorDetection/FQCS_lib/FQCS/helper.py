@@ -149,7 +149,7 @@ def get_rotation_match(test, true):
     return min_deg, min_diff
 
 
-def find_cnt_box(c, img):
+def find_cnt_box(c):
     rect = cv2.minAreaRect(c)
     box = cv2.boxPoints(rect)
     box = np.array(box, dtype="int")
@@ -176,6 +176,19 @@ def get_warped_box(img, rect, box):
     M = cv2.getPerspectiveTransform(box, dst_pts)
     warped = cv2.warpPerspective(img, M, (width, height))
     return warped
+
+
+def sort_contours_area(cnts):
+    areas = [cv2.contourArea(c) for c in cnts]
+    if len(cnts) > 0:
+        (cnts, areas) = zip(
+            *sorted(zip(cnts, areas), key=lambda b: b[1], reverse=True))
+    return (cnts, areas)
+
+
+def sort_data_by_loc(data, idx):
+    data = sorted(data, key=lambda x: np.min(x[idx][:, 0]))
+    return data
 
 
 def fill_contours(image, cnts):

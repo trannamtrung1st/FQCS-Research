@@ -1,10 +1,10 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-from FQCS import helper
-from FQCS.tf2_yolov4 import helper as y_helper
+from FQCS_lib.FQCS import helper
+from FQCS_lib.FQCS.tf2_yolov4 import helper as y_helper
 import os
-from FQCS import detector
+from FQCS_lib.FQCS import detector
 import asyncio
 import os
 
@@ -14,10 +14,8 @@ async def main():
     sample_left_path = os.path.join(config_folder, detector.SAMPLE_LEFT_FILE)
     sample_right_path = os.path.join(config_folder, detector.SAMPLE_RIGHT_FILE)
 
-    # detector_cfg = detector.default_detector_config()
-    # detector_cfg["length_per_10px"] = 0.65
-    # detector_cfg["color_cfg"]["amplify_thresh"] = (1000, 1000, 1000)
     detector_cfg = detector.load_json_cfg(config_folder)
+    detector_cfg["detect_method"] = "edge"
 
     err_cfg = detector_cfg["err_cfg"]
     model = asyncio.create_task(
@@ -30,7 +28,8 @@ async def main():
             weights=err_cfg["weights"],
             yolo_score_threshold=err_cfg["yolo_score_threshold"]))
 
-    uri = "test.mp4"
+    uri = "test2.mp4"
+    # uri = 0
     cap = cv2.VideoCapture(uri)
     frame_width, frame_height = detector_cfg["frame_width"], detector_cfg[
         "frame_height"]
@@ -45,12 +44,12 @@ async def main():
         sample_right = cv2.imread(sample_right_path)
 
     model = await model
-    try:
-        # activate
-        await detector.detect_errors(model, [np.zeros(err_cfg["inp_shape"])],
-                                     err_cfg["img_size"])
-    finally:
-        print("Activated")
+    # try:
+    #     # activate
+    #     await detector.detect_errors(model, [np.zeros(err_cfg["inp_shape"])],
+    #                                  err_cfg["img_size"])
+    # finally:
+    #     print("Activated")
 
     found = False
     while not found:
@@ -93,13 +92,13 @@ async def main():
         unit = detector_cfg["length_unit"]
         per_10px = detector_cfg["length_per_10px"]
         sizes = []
-        for b in boxes:
+        for idx, b in enumerate(boxes):
             rect, dimA, dimB, box, tl, tr, br, bl = b
             lH, lW = helper.calculate_length(
                 dimA, per_10px), helper.calculate_length(dimB, per_10px)
             sizes.append((lH, lW))
             cv2.drawContours(image, [box.astype("int")], -1, (0, 255, 0), 2)
-            cv2.putText(image, f"{lW:.1f} {unit}", (tl[0], tl[1]),
+            cv2.putText(image, f"{idx}/ {lW:.1f} {unit}", (tl[0], tl[1]),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 0), 2)
             cv2.putText(image, f"{lH:.1f} {unit}", (br[0], br[1]),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 0), 2)

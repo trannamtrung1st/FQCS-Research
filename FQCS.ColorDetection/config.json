@@ -1,6 +1,6 @@
 {
-  "min_width_per": 0.1,
-  "min_height_per": 0.7,
+  "min_width_per": 0.05,
+  "min_height_per": 0.05,
   "stop_condition": 0,
   "detect_range": [
     0.2,
@@ -67,6 +67,7 @@
     ]
   },
   "d_cfg": {
+    "max_boxes": 10,
     "bg_thresh": 110,
     "adj_bg_thresh": 110,
     "light_adj_thresh": 65,

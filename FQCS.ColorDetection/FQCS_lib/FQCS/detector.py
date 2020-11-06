@@ -68,31 +68,10 @@ def default_err_config():
                 classes=['dirt'])
 
 
-def default_edge_config():
-    return dict(alpha=1.0,
-                beta=0,
-                threshold1=40,
-                threshold2=100,
-                kernel=(5, 5),
-                d_kernel=np.ones((5, 5)),
-                e_kernel=None)
-
-
-def default_thresh_config():
-    return dict(bg_thresh=110, adj_bg_thresh=110, light_adj_thresh=65)
-
-
-def default_range_config():
-    cr_to = (180, 255 * 0.5, 255 * 0.5)
-    return dict(cr_from=(0, 0, 0),
-                cr_to=cr_to,
-                adj_cr_to=cr_to,
-                light_adj_thresh=65)
-
-
 def default_d_config():
     cr_to = (180, 255 * 0.5, 255 * 0.5)
-    return dict(bg_thresh=110,
+    return dict(max_boxes=10,
+                bg_thresh=110,
                 adj_bg_thresh=110,
                 light_adj_thresh=65,
                 alpha=1.0,
@@ -105,20 +84,6 @@ def default_d_config():
                 cr_from=(0, 0, 0),
                 cr_to=cr_to,
                 adj_cr_to=cr_to)
-
-
-def default_color_config():
-    return dict(img_size=(32, 64),
-                blur_val=0.05,
-                alpha_r=1,
-                alpha_l=1,
-                beta_r=-150,
-                beta_l=-150,
-                sat_adj=2,
-                supp_thresh=10,
-                amplify_thresh=(None, None, None),
-                amplify_rate=20,
-                max_diff=0.2)
 
 
 def default_color_config():
@@ -353,8 +318,10 @@ def find_contours_using_edge(image, d_cfg):
     edged = cv2.erode(edged, d_cfg['e_kernel'], iterations=1)
     cnts = cv2.findContours(edged, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
-    cnts = sorted(cnts, key=lambda c: cv2.contourArea(c), reverse=True)
-    return cnts, edged
+    cnts, areas = helper.sort_contours_area(cnts)
+    cnts = cnts[:d_cfg["max_boxes"]]
+    areas = areas[:d_cfg["max_boxes"]]
+    return cnts, areas, edged
 
 
 def find_contours_using_range(image, d_cfg):
@@ -365,8 +332,10 @@ def find_contours_using_range(image, d_cfg):
     im_th[mask < 127] = 255
     cnts = cv2.findContours(im_th, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
-    cnts = sorted(cnts, key=lambda c: cv2.contourArea(c), reverse=True)
-    return cnts, im_th
+    cnts, areas = helper.sort_contours_area(cnts)
+    cnts = cnts[:d_cfg["max_boxes"]]
+    areas = areas[:d_cfg["max_boxes"]]
+    return cnts, areas, im_th
 
 
 def find_contours_using_thresh(image, d_cfg):
@@ -375,20 +344,25 @@ def find_contours_using_thresh(image, d_cfg):
                                 cv2.THRESH_BINARY)
     cnts = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
-    cnts = sorted(cnts, key=lambda c: cv2.contourArea(c), reverse=True)
-    return cnts, thresh
+    cnts, areas = helper.sort_contours_area(cnts)
+    cnts = cnts[:d_cfg["max_boxes"]]
+    areas = areas[:d_cfg["max_boxes"]]
+    return cnts, areas, thresh
 
 
 def find_contours_and_box(image: np.ndarray, find_contours_func, d_cfg,
                           min_width, min_height):
     # start
+    min_area = min_width * min_height
     boxes = []
-    cnts, proc = find_contours_func(image, d_cfg)
+    cnts, areas, proc = find_contours_func(image, d_cfg)
     helper.fill_contours(image, cnts)
-    for c in cnts[:2]:
-        rect, dimA, dimB, box, tl, tr, br, bl = helper.find_cnt_box(c, image)
-        if (dimA >= min_height and dimB >= min_width):
+    for i in range(len(cnts)):
+        c = cnts[i]
+        rect, dimA, dimB, box, tl, tr, br, bl = helper.find_cnt_box(c)
+        if (dimA >= min_height and dimB >= min_width and areas[i] >= min_area):
             boxes.append((rect, dimA, dimB, box, tl, tr, br, bl))
+    boxes = helper.sort_data_by_loc(boxes, 3)
     return boxes, cnts, proc
 
 
@@ -396,10 +370,10 @@ def detect_one_and_size(orig_img: np.ndarray, image: np.ndarray,
                         find_contours_func, d_cfg):
     # start
     h, w = image.shape[:2]
-    cnts, proc = find_contours_func(image, d_cfg)
+    cnts, areas, proc = find_contours_func(image, d_cfg)
     helper.fill_contours(image, cnts)
     c = cnts[0]
-    rect, dimA, dimB, box, tl, tr, br, bl = helper.find_cnt_box(c, image)
+    rect, dimA, dimB, box, tl, tr, br, bl = helper.find_cnt_box(c)
     warped = helper.get_warped_box(image, rect, box)
     return (warped, (rect, dimA, dimB, box, tl, tr, br, bl))
 
