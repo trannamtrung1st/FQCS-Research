@@ -46,6 +46,7 @@ async def main():
         sample_left = cv2.imread(sample_left_path)
         sample_right = cv2.imread(sample_right_path)
         sample_area = sample_left.shape[0] * sample_left.shape[1]
+    
 
     model = await model
     # try:

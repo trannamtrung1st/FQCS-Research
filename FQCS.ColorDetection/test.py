@@ -8,6 +8,8 @@ import os
 import asyncio
 import os
 
+SAMPLE_AREA = 10000
+
 
 async def main():
     config_folder = "./"
@@ -52,8 +54,8 @@ async def main():
             min_height=min_height,
             detect_range=detector_cfg['detect_range'])
 
-        manager.group_pairs(boxes)
-
+        manager.group_pairs(boxes, SAMPLE_AREA)
+        print("Checked:", manager.get_check_group())
         # pair, split_left, split_right = None, None, None
         # if manager.check_group < group_count:
         #     current_pair_boxes = grouped_pairs[manager.check_group]
@@ -100,7 +102,8 @@ async def main():
         #                     cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 0), 2)
         cv2.imshow("Processed", image)
         cv2.imshow("Contours processed", proc)
-        cv2.waitKey(0)
+        if cv2.waitKey(0) == ord('c'):
+            manager.check_group()
 
 
 def save_cfg():
