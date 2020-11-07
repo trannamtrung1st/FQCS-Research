@@ -392,21 +392,17 @@ def detect_one_and_size(orig_img: np.ndarray, image: np.ndarray,
 def detect_pair_and_size(image: np.ndarray,
                          find_contours_func,
                          d_cfg,
-                         org_boxes,
+                         boxes,
                          stop_condition=0):
     # start
     pair = []
     h, w = image.shape[:2]
-    boxes, cnts = [], []
-    boxes_len = len(org_boxes)
-    for i in range(1, boxes_len):
-        if org_boxes[i] is not None:
-            cnts.append(org_boxes[i][0])
-            boxes.append(org_boxes[i])
+    boxes_count = len(boxes)
+    cnts = [boxes[i][0] for i in range(boxes_count)]
     cnts = np.asarray(cnts)
     helper.fill_contours(image, cnts)
     min_x, max_x = w, 0
-    for item in boxes[1:]:
+    for item in boxes:
         c, rect, dimA, dimB, box, tl, tr, br, bl, cur_min_x, cur_max_x, cur_center_x = item
         min_x = min(cur_min_x, min_x)
         max_x = max(cur_max_x, max_x)
@@ -428,7 +424,7 @@ def detect_pair_and_size(image: np.ndarray,
                                         d_cfg)
             if (left is not None and right is not None):
                 pair = [left, right]
-                boxes = [boxes[0], left[1], right[1]]
+                boxes = [left[1], right[1]]
 
     pair = sorted(pair, key=lambda x: x[1][1][0], reverse=True)
     return pair if len(

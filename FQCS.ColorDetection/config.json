@@ -3,8 +3,8 @@
   "min_height_per": 0.05,
   "stop_condition": 0,
   "detect_range": [
-    0.05,
-    0.95
+    0.2,
+    0.8
   ],
   "length_per_10px": 0.65,
   "length_unit": "cm",
@@ -68,7 +68,7 @@
   },
   "d_cfg": {
     "max_boxes": 10,
-    "bg_thresh": 150,
+    "bg_thresh": 110,
     "adj_bg_thresh": 110,
     "light_adj_thresh": 65,
     "alpha": 1.0,
