@@ -351,19 +351,26 @@ def find_contours_using_thresh(image, d_cfg):
 
 
 def find_contours_and_box(image: np.ndarray, find_contours_func, d_cfg,
-                          min_width, min_height):
+                          min_width, min_height, detect_range):
     # start
+    h, w = image.shape[:2]
     min_area = min_width * min_height
     boxes = []
     cnts, areas, proc = find_contours_func(image, d_cfg)
     helper.fill_contours(image, cnts)
+    from_x, to_x = w * detect_range[0], w * detect_range[1]
     for i in range(len(cnts)):
         c = cnts[i]
         rect, dimA, dimB, box, tl, tr, br, bl = helper.find_cnt_box(c)
-        if (dimA >= min_height and dimB >= min_width and areas[i] >= min_area):
-            boxes.append((rect, dimA, dimB, box, tl, tr, br, bl))
-    boxes = helper.sort_data_by_loc(boxes, 3)
-    return boxes, cnts, proc
+        min_x = min(tl[0], tr[0], br[0], bl[0])
+        max_x = max(tl[0], tr[0], br[0], bl[0])
+        center_x = (min_x + max_x) / 2
+        if (min_x >= from_x and max_x <= to_x and dimA >= min_height
+                and dimB >= min_width and areas[i] >= min_area):
+            boxes.append((c, rect, dimA, dimB, box, tl, tr, br, bl, min_x,
+                          max_x, center_x))
+    boxes = helper.sort_data_by_loc(boxes, 4)
+    return boxes, proc
 
 
 def detect_one_and_size(orig_img: np.ndarray, image: np.ndarray,
@@ -374,31 +381,35 @@ def detect_one_and_size(orig_img: np.ndarray, image: np.ndarray,
     helper.fill_contours(image, cnts)
     c = cnts[0]
     rect, dimA, dimB, box, tl, tr, br, bl = helper.find_cnt_box(c)
+    min_x = min(tl[0], tr[0], br[0], bl[0])
+    max_x = max(tl[0], tr[0], br[0], bl[0])
+    center_x = (min_x + max_x) / 2
     warped = helper.get_warped_box(image, rect, box)
-    return (warped, (rect, dimA, dimB, box, tl, tr, br, bl))
+    return (warped, (c, rect, dimA, dimB, box, tl, tr, br, bl, min_x, max_x,
+                     center_x))
 
 
 def detect_pair_and_size(image: np.ndarray,
                          find_contours_func,
                          d_cfg,
-                         boxes,
-                         cnts,
-                         stop_condition=0,
-                         detect_range=(0.2, 0.8)):
+                         org_boxes,
+                         stop_condition=0):
     # start
     pair = []
     h, w = image.shape[:2]
+    boxes, cnts = [], []
+    boxes_len = len(org_boxes)
+    for i in range(1, boxes_len):
+        if org_boxes[i] is not None:
+            cnts.append(org_boxes[i][0])
+            boxes.append(org_boxes[i])
+    cnts = np.asarray(cnts)
+    helper.fill_contours(image, cnts)
     min_x, max_x = w, 0
-    from_x, to_x = w * detect_range[0], w * detect_range[1]
-    for item in boxes:
-        rect, dimA, dimB, box, tl, tr, br, bl = item
-        cur_min_x = min(tl[0], tr[0], br[0], bl[0])
-        cur_max_x = max(tl[0], tr[0], br[0], bl[0])
+    for item in boxes[1:]:
+        c, rect, dimA, dimB, box, tl, tr, br, bl, cur_min_x, cur_max_x, cur_center_x = item
         min_x = min(cur_min_x, min_x)
         max_x = max(cur_max_x, max_x)
-        if (min_x < from_x or max_x > to_x):
-            break
-
         warped = helper.get_warped_box(image, rect, box)
         pair.append((warped, box, dimA, dimB))
 
@@ -417,9 +428,9 @@ def detect_pair_and_size(image: np.ndarray,
                                         d_cfg)
             if (left is not None and right is not None):
                 pair = [left, right]
-                boxes = [left[1], right[1]]
+                boxes = [boxes[0], left[1], right[1]]
 
-    pair = sorted(pair, key=lambda x: x[1][0][0], reverse=True)
+    pair = sorted(pair, key=lambda x: x[1][1][0], reverse=True)
     return pair if len(
         pair) == 2 else None, image, split_left, split_right, boxes
 

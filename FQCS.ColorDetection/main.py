@@ -3,8 +3,9 @@ import cv2
 import matplotlib.pyplot as plt
 from FQCS_lib.FQCS import helper
 from FQCS_lib.FQCS.tf2_yolov4 import helper as y_helper
-import os
+from FQCS_lib.FQCS.manager import FQCSManager
 from FQCS_lib.FQCS import detector
+import os
 import asyncio
 import os
 
@@ -15,7 +16,8 @@ async def main():
     sample_right_path = os.path.join(config_folder, detector.SAMPLE_RIGHT_FILE)
 
     detector_cfg = detector.load_json_cfg(config_folder)
-    detector_cfg["detect_method"] = "edge"
+    # detector_cfg["detect_method"] = "edge"
+    manager = FQCSManager()
 
     err_cfg = detector_cfg["err_cfg"]
     model = asyncio.create_task(
@@ -28,8 +30,8 @@ async def main():
             weights=err_cfg["weights"],
             yolo_score_threshold=err_cfg["yolo_score_threshold"]))
 
-    uri = "test2.mp4"
-    # uri = 0
+    # uri = "test2.mp4"
+    uri = 0
     cap = cv2.VideoCapture(uri)
     frame_width, frame_height = detector_cfg["frame_width"], detector_cfg[
         "frame_height"]
@@ -38,10 +40,12 @@ async def main():
     min_width, min_height = frame_width * min_width, frame_height * min_height
     # cap.set(cv2.CAP_PROP_POS_FRAMES, 1100)
 
+    sample_area = None
     sample_left, sample_right = None, None
     if os.path.exists(sample_left_path):
         sample_left = cv2.imread(sample_left_path)
         sample_right = cv2.imread(sample_right_path)
+        sample_area = sample_left.shape[0] * sample_left.shape[1]
 
     model = await model
     # try:
@@ -51,8 +55,7 @@ async def main():
     # finally:
     #     print("Activated")
 
-    found = False
-    while not found:
+    while True:
         _, image = cap.read()
         image = cv2.resize(image, (frame_width, frame_height))
 
@@ -73,42 +76,70 @@ async def main():
                 image, d_cfg["light_adj_thresh"], d_cfg["cr_to"])
             d_cfg["adj_cr_to"] = adj_cr_to
 
-        boxes, cnts, proc = detector.find_contours_and_box(
+        boxes, proc = detector.find_contours_and_box(
             image,
             find_contours_func,
             d_cfg,
             min_width=min_width,
-            min_height=min_height)
-        pair, image, split_left, split_right, boxes = detector.detect_pair_and_size(
-            image,
-            find_contours_func,
-            d_cfg,
-            boxes,
-            cnts,
-            stop_condition=detector_cfg['stop_condition'],
+            min_height=min_height,
             detect_range=detector_cfg['detect_range'])
+
+        manager.group_pairs(boxes, sample_area)
+        grouped_pairs = manager.pairs
+        group_count = manager.current_count
+        print(group_count)
+
+        pair, split_left, split_right = None, None, None
+        if manager.check_group < group_count:
+            current_pair_boxes = grouped_pairs[manager.check_group]
+            if current_pair_boxes is not None:
+                image_detect = image.copy()
+                pair, image_detect, split_left, split_right, current_pair_boxes = detector.detect_pair_and_size(
+                    image_detect,
+                    find_contours_func,
+                    d_cfg,
+                    current_pair_boxes,
+                    stop_condition=detector_cfg['stop_condition'])
+                cv2.imshow("Current detected", image_detect)
+                grouped_pairs[manager.check_group] = current_pair_boxes
+            else:
+                manager.checked_group(manager.check_group)
 
         # output
         unit = detector_cfg["length_unit"]
         per_10px = detector_cfg["length_per_10px"]
         sizes = []
-        for idx, b in enumerate(boxes):
-            rect, dimA, dimB, box, tl, tr, br, bl = b
-            lH, lW = helper.calculate_length(
-                dimA, per_10px), helper.calculate_length(dimB, per_10px)
-            sizes.append((lH, lW))
-            cv2.drawContours(image, [box.astype("int")], -1, (0, 255, 0), 2)
-            cv2.putText(image, f"{idx}/ {lW:.1f} {unit}", (tl[0], tl[1]),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 0), 2)
-            cv2.putText(image, f"{lH:.1f} {unit}", (br[0], br[1]),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 0), 2)
+        for p in grouped_pairs:
+            # if p is None or p[0] < manager.check_group: continue
+            if p is None: continue
+            for b in p[1:]:
+                if b is None: continue
+                c, rect, dimA, dimB, box, tl, tr, br, bl, minx, maxx, cenx = b
+                _, _, min_x_group, max_x_group = manager.pos_tracks[p[0]]
+                min_line = helper.extend_line((min_x_group, 0),
+                                              (min_x_group, 1), 1000)
+                max_line = helper.extend_line((max_x_group, 0),
+                                              (max_x_group, 1), 1000)
+                lH, lW = helper.calculate_length(
+                    dimA, per_10px), helper.calculate_length(dimB, per_10px)
+                sizes.append((lH, lW))
+                cv2.line(image, tuple(min_line[0]), tuple(min_line[1]),
+                         (255, 0, 0))
+                cv2.line(image, tuple(max_line[0]), tuple(max_line[1]),
+                         (255, 0, 0))
+                cv2.drawContours(image, [box.astype("int")], -1, (0, 255, 0),
+                                 2)
+                cv2.putText(image, f"{p[0]}/ {lW:.1f} {unit}", (tl[0], tl[1]),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 0), 2)
+                cv2.putText(image, f"{lH:.1f} {unit}", (br[0], br[1]),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 0), 2)
         cv2.imshow("Processed", image)
         cv2.imshow("Contours processed", proc)
         # cv2.waitKey(1)
         cv2.waitKey(0)
 
         if (pair is not None):
-            found = True
+            manager.checked_group(manager.check_group)
             left, right = pair
             left, right = left[0], right[0]
             h_diff, w_diff = detector.compare_size(sizes[0], sizes[1],
