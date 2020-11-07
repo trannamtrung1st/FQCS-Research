@@ -84,7 +84,7 @@ async def main():
             min_height=min_height,
             detect_range=detector_cfg['detect_range'])
 
-        manager.group_pairs(boxes, sample_area)
+        manager.group_pairs(boxes)
         grouped_pairs = manager.pairs
         group_count = manager.current_count
         print(group_count)
