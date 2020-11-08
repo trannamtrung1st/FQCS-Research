@@ -8,6 +8,7 @@ class FQCSManager:
     def __init__(self):
         self.__last_group_count = 0
         self.__last_check_min_x = None
+        self.__speed = None
         return
 
     def get_last_check_min_x(self):
@@ -72,6 +73,12 @@ class FQCSManager:
                 final_status.append(status)
                 if not status and check_group is None:
                     check_group = len(final_grouped) - 1
+        if tmp_last_check_min_x is not None and self.__last_check_min_x is not None:
+            tmp_speed = tmp_last_check_min_x - self.__last_check_min_x
+            if tmp_speed <= 0:
+                tmp_last_check_min_x += self.__speed
+            else:
+                self.__speed = tmp_speed
         self.__last_check_min_x = tmp_last_check_min_x
 
         print("--------- FINAL --------")
