@@ -36,12 +36,12 @@ class FQCSManager:
             next_idx = i - 1
             if next_idx > -1:
                 next_box = boxes[next_idx]
-                next_area = next_box[2] * next_box[3]
                 minx = next_box[-3]
                 grouped.append([b])
                 grouped[-1].append(next_box)
                 sizes.append(maxx - minx)
 
+        check_group = None
         group_count = len(grouped)
         final_grouped = []
         final_sizes = []
@@ -49,7 +49,7 @@ class FQCSManager:
         if group_count == 0:
             group_count = len(final_grouped)
             self.__last_group_count = group_count
-            return final_grouped, final_sizes, final_status
+            return final_grouped, final_sizes, final_status, check_group
         max_size = np.max(sizes)
         min_size = np.min(sizes)
         range_size = (max_size, max_size)
@@ -59,24 +59,24 @@ class FQCSManager:
             range_size = self.__devide_range_size(sizes, group_count)
         print("Sizes:", range_size, min_size, max_size)
         print("------------------------")
+        tmp_last_check_min_x = self.__last_check_min_x
         for i, g in enumerate(grouped):
             print("Group", i, len(g), sizes[i])
+            status = self.__calc_status(g)
+            if status: tmp_last_check_min_x = self.get_min_x(g)
             if (range_size is None or
-                (sizes[i] >= range_size[0] and sizes[i] <= range_size[1])):
+                (sizes[i] >= range_size[0] and sizes[i] <= range_size[1])
+                    and self.__is_same_status(g)):
                 final_grouped.append(g)
                 final_sizes.append(sizes[i])
+                final_status.append(status)
+                if not status and check_group is None:
+                    check_group = len(final_grouped) - 1
+        self.__last_check_min_x = tmp_last_check_min_x
 
         print("--------- FINAL --------")
-        tmp_last_check_min_x = self.__last_check_min_x
-        check_group = None
         for i, g in enumerate(final_grouped):
-            status = self.__calc_status(g)
-            final_status.append(status)
-            if status: tmp_last_check_min_x = self.get_min_x(g)
-            elif check_group is None:
-                check_group = i
             print("Group", i, len(g), final_sizes[i])
-        self.__last_check_min_x = tmp_last_check_min_x
 
         group_count = len(final_grouped)
         self.__last_group_count = group_count
@@ -85,6 +85,16 @@ class FQCSManager:
     def __calc_status(self, group):
         final_cen_x = self.__get_cen_x(group)
         return self.__last_check_min_x is not None and final_cen_x > self.__last_check_min_x
+
+    def __is_same_status(self, group):
+        last_stt = None
+        for b in group:
+            cur_stt = self.__calc_status([b])
+            if last_stt is None:
+                last_stt = cur_stt
+            else:
+                return last_stt == cur_stt
+        return True
 
     def __devide_range_size(self, sizes, group_count):
         sizes = sorted(sizes)
