@@ -68,7 +68,7 @@
   },
   "d_cfg": {
     "max_boxes": 10,
-    "bg_thresh": 170,
+    "bg_thresh": 160,
     "adj_bg_thresh": 0,
     "light_adj_thresh": 0,
     "alpha": 1.0,

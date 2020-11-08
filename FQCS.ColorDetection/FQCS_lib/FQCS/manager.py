@@ -1,14 +1,13 @@
 import numpy as np
 
 COMPARE_FACTOR = 1.5
-STEP_FACTOR = 4
 
 
 class FQCSManager:
     def __init__(self):
         self.__last_group_count = 0
         self.__last_check_min_x = None
-        self.__speed = None
+        self.__speed = 1
         return
 
     def get_last_check_min_x(self):
@@ -19,6 +18,7 @@ class FQCSManager:
 
     def check_group(self, min_x):
         self.__last_check_min_x = min_x
+        self.__speed = 1
 
     def group_pairs(self, boxes, sample_area):
         max_seperated_area = sample_area * COMPARE_FACTOR if sample_area is not None else None
@@ -58,11 +58,11 @@ class FQCSManager:
             range_size = None
         elif group_count + not_sep_count > 3:
             range_size = self.__devide_range_size(sizes, group_count)
-        print("Sizes:", range_size, min_size, max_size)
-        print("------------------------")
+        # print("Sizes:", range_size, min_size, max_size)
+        # print("------------------------")
         tmp_last_check_min_x = self.__last_check_min_x
         for i, g in enumerate(grouped):
-            print("Group", i, len(g), sizes[i])
+            # print("Group", i, len(g), sizes[i])
             status = self.__calc_status(g)
             if status: tmp_last_check_min_x = self.get_min_x(g)
             if (range_size is None or
@@ -81,9 +81,9 @@ class FQCSManager:
                 self.__speed = tmp_speed
         self.__last_check_min_x = tmp_last_check_min_x
 
-        print("--------- FINAL --------")
-        for i, g in enumerate(final_grouped):
-            print("Group", i, len(g), final_sizes[i])
+        # print("--------- FINAL --------")
+        # for i, g in enumerate(final_grouped):
+        #     print("Group", i, len(g), final_sizes[i])
 
         group_count = len(final_grouped)
         self.__last_group_count = group_count

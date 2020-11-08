@@ -88,11 +88,10 @@ async def main():
         final_grouped, _, _, check_group_idx = manager.group_pairs(
             boxes, sample_area)
         group_count = manager.get_last_group_count()
-        print("Last min x:", manager.get_last_check_min_x())
-        print("Count:", group_count, "Check:", check_group_idx)
+        # print("Last min x:", manager.get_last_check_min_x())
+        # print("Count:", group_count, "Check:", check_group_idx)
 
         pair, split_left, split_right = None, None, None
-
         check_group = None
         if check_group_idx is not None:
             check_group = final_grouped[check_group_idx]
@@ -124,8 +123,8 @@ async def main():
                             cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 0), 2)
         cv2.imshow("Processed", image)
         cv2.imshow("Contours processed", proc)
-        # cv2.waitKey(1)
-        cv2.waitKey(0)
+        cv2.waitKey(1)
+        # cv2.waitKey(0)
 
         if (pair is not None):
             check_group_min_x = manager.get_min_x(check_group)
