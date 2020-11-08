@@ -61,13 +61,21 @@ async def main():
 
         # adjust thresh
         if (detector_cfg["detect_method"] == "thresh"):
-            adj_bg_thresh = helper.adjust_thresh_by_brightness(
-                image, d_cfg["light_adj_thresh"], d_cfg["bg_thresh"])
+            adj_thresh = d_cfg["light_adj_thresh"]
+            if adj_thresh is not None and adj_thresh > 0:
+                adj_bg_thresh = helper.adjust_thresh_by_brightness(
+                    image, d_cfg["light_adj_thresh"], d_cfg["bg_thresh"])
+            else:
+                adj_bg_thresh = d_cfg["bg_thresh"]
             d_cfg["adj_bg_thresh"] = adj_bg_thresh
         elif (detector_cfg["detect_method"] == "range"):
-            adj_cr_to = helper.adjust_crange_by_brightness(
-                image, d_cfg["light_adj_thresh"], d_cfg["cr_to"])
-            d_cfg["adj_cr_to"] = adj_cr_to
+            adj_thresh = d_cfg["light_adj_thresh"]
+            if adj_thresh is not None and adj_thresh > 0:
+                adj_cr_to = helper.adjust_crange_by_brightness(
+                    image, d_cfg["light_adj_thresh"], d_cfg["cr_to"])
+                d_cfg["adj_cr_to"] = adj_cr_to
+            else:
+                d_cfg["adj_cr_to"] = d_cfg["cr_to"]
 
         boxes, proc = detector.find_contours_and_box(
             image,

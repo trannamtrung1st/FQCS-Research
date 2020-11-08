@@ -1,10 +1,10 @@
 {
-  "min_width_per": 0.05,
-  "min_height_per": 0.05,
+  "min_width_per": 0.1,
+  "min_height_per": 0.1,
   "stop_condition": 0,
   "detect_range": [
-    0.2,
-    0.8
+    0,
+    1
   ],
   "length_per_10px": 0.65,
   "length_unit": "cm",
@@ -68,9 +68,9 @@
   },
   "d_cfg": {
     "max_boxes": 10,
-    "bg_thresh": 110,
-    "adj_bg_thresh": 110,
-    "light_adj_thresh": 65,
+    "bg_thresh": 170,
+    "adj_bg_thresh": 0,
+    "light_adj_thresh": 0,
     "alpha": 1.0,
     "beta": 0,
     "threshold1": 40,
