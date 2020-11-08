@@ -85,23 +85,25 @@ async def main():
             min_height=min_height,
             detect_range=detector_cfg['detect_range'])
 
-        final_grouped, _ = manager.group_pairs(boxes, sample_area)
+        final_grouped, _, _, check_group_idx = manager.group_pairs(
+            boxes, sample_area)
         group_count = manager.get_last_group_count()
-        check_group = manager.get_check_group()
-        print("Count:", group_count, "Check: ", check_group)
+        print("Count:", group_count, "Check:", check_group_idx)
 
         pair, split_left, split_right = None, None, None
-        if check_group < group_count:
-            current_boxes = final_grouped[check_group]
+
+        check_group = None
+        if check_group_idx is not None:
+            check_group = final_grouped[check_group_idx]
             image_detect = image.copy()
-            pair, image_detect, split_left, split_right, current_boxes = detector.detect_pair_and_size(
+            pair, image_detect, split_left, split_right, check_group = detector.detect_pair_and_size(
                 image_detect,
                 find_contours_func,
                 d_cfg,
-                current_boxes,
+                check_group,
                 stop_condition=detector_cfg['stop_condition'])
             cv2.imshow("Current detected", image_detect)
-            final_grouped[check_group] = current_boxes
+            final_grouped[check_group_idx] = check_group
 
         # output
         unit = detector_cfg["length_unit"]
@@ -125,7 +127,8 @@ async def main():
         cv2.waitKey(0)
 
         if (pair is not None):
-            manager.check_group()
+            check_group_min_x = manager.get_min_x(check_group)
+            manager.check_group(check_group_min_x)
             left, right = pair
             left, right = left[0], right[0]
             h_diff, w_diff = detector.compare_size(sizes[0], sizes[1],

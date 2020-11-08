@@ -1,6 +1,6 @@
 {
-  "min_width_per": 0.1,
-  "min_height_per": 0.1,
+  "min_width_per": 0.05,
+  "min_height_per": 0.05,
   "stop_condition": 0,
   "detect_range": [
     0,

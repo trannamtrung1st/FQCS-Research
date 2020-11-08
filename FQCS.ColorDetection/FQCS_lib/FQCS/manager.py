@@ -6,24 +6,15 @@ STEP_FACTOR = 4
 
 class FQCSManager:
     def __init__(self):
-        self.__check_group = 0
         self.__last_group_count = 0
-        self.__last_check_group = None
-        self.__last_check_group_loc = None
+        self.__last_check_min_x = None
         return
-
-    def get_last_check_group_loc(self):
-        return self.__last_check_group_loc
 
     def get_last_group_count(self):
         return self.__last_group_count
 
-    def get_check_group(self):
-        return self.__check_group
-
-    def check_group(self):
-        self.__last_check_group = self.__check_group
-        self.__check_group += 1
+    def check_group(self, min_x):
+        self.__last_check_min_x = min_x
 
     def group_pairs(self, boxes, sample_area):
         max_seperated_area = sample_area * COMPARE_FACTOR if sample_area is not None else None
@@ -52,62 +43,49 @@ class FQCSManager:
         group_count = len(grouped)
         final_grouped = []
         final_sizes = []
-        check_group_loc = None
+        final_status = []
         if group_count == 0:
             group_count = len(final_grouped)
-            self.__calc_check_group(group_count, check_group_loc)
             self.__last_group_count = group_count
-            self.__last_check_group_loc = check_group_loc
-            return final_grouped, final_sizes
+            return final_grouped, final_sizes, final_status
         max_size = np.max(sizes)
         min_size = np.min(sizes)
         range_size = (max_size, max_size)
-        if group_count + not_sep_count > 3:
-            range_size = self.__devide_range_size(sizes, group_count)
-        elif group_count < 3:
+        if group_count < 3:
             range_size = None
+        elif group_count + not_sep_count > 3:
+            range_size = self.__devide_range_size(sizes, group_count)
         print("Sizes:", range_size, min_size, max_size)
         print("------------------------")
         for i, g in enumerate(grouped):
             print("Group", i, len(g), sizes[i])
             if (range_size is None or
-                (sizes[i] >= range_size[0] and sizes[i] <= range_size[1])
-                ) and (self.__last_check_group_loc is None or
-                       (len(final_grouped) == self.__last_check_group
-                        or g[0][-2] < self.__last_check_group_loc[0])):
+                (sizes[i] >= range_size[0] and sizes[i] <= range_size[1])):
                 final_grouped.append(g)
                 final_sizes.append(sizes[i])
 
         print("--------- FINAL --------")
+        tmp_last_check_min_x = self.__last_check_min_x
+        check_group = None
         for i, g in enumerate(final_grouped):
-            if self.__last_check_group == i:
-                right, left = g[0], g[0]
-                if len(g) == 2: left = g[1]
-                # min_x, max_x
-                print("Last:", self.__last_check_group_loc)
-                check_group_loc = [left[-3], right[-2]]
-                print("Current:", check_group_loc)
+            status = self.__calc_status(g)
+            final_status.append(status)
+            if status: tmp_last_check_min_x = self.get_min_x(g)
+            elif check_group is None:
+                check_group = i
             print("Group", i, len(g), final_sizes[i])
+        self.__last_check_min_x = tmp_last_check_min_x
+        print("Check group", check_group, "Last check:",
+              self.__last_check_min_x)
 
         group_count = len(final_grouped)
-        self.__calc_check_group(group_count, check_group_loc)
-        if check_group_loc is not None:
-            self.__last_check_group_loc = check_group_loc
         self.__last_group_count = group_count
-        return final_grouped, final_sizes
+        return final_grouped, final_sizes, final_status, check_group
 
-    def __calc_check_group(self, group_count, check_group_loc):
-        diff = self.__last_group_count - group_count
-        if diff > 0: self.__check_group -= diff
-        elif diff == 0 and (
-            (self.__last_check_group_loc is not None
-             and check_group_loc is None) or
-            (self.__last_check_group_loc is not None
-             and check_group_loc is not None
-             and self.__last_check_group_loc[0] >= check_group_loc[1])):
-            print(self.__last_check_group_loc, check_group_loc)
-            self.__check_group -= 1
-        self.__check_group = self.__check_group if self.__check_group >= 0 else 0
+    def __calc_status(self, group):
+        final_cen_x = self.__get_cen_x(group)
+        print("Cenx:", final_cen_x, "Last:", self.__last_check_min_x)
+        return self.__last_check_min_x is not None and final_cen_x > self.__last_check_min_x
 
     def __devide_range_size(self, sizes, group_count):
         sizes = sorted(sizes)
@@ -124,4 +102,21 @@ class FQCSManager:
             elif diff > max_2:
                 max_2 = diff
                 range_2 = (sizes[i], sizes[i + 1])
+        range_2 = range_2 if range_2 is not None else (range_1[1], range_1[0])
         return (range_2[1], range_1[0])
+
+    def get_min_x(self, group):
+        final_min_x = None
+        for b in group:
+            c, rect, dimA, dimB, box, tl, tr, br, bl, minx, maxx, cenx = b
+            if final_min_x is None or minx < final_min_x:
+                final_min_x = minx
+        return final_min_x
+
+    def __get_cen_x(self, group):
+        final_cen_x = None
+        for b in group:
+            c, rect, dimA, dimB, box, tl, tr, br, bl, minx, maxx, cenx = b
+            if final_cen_x is None or cenx < final_cen_x:
+                final_cen_x = cenx
+        return final_cen_x
