@@ -88,6 +88,7 @@ async def main():
         final_grouped, _, _, check_group_idx = manager.group_pairs(
             boxes, sample_area)
         group_count = manager.get_last_group_count()
+        print("Last min x:", manager.get_last_check_min_x())
         print("Count:", group_count, "Check:", check_group_idx)
 
         pair, split_left, split_right = None, None, None

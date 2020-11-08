@@ -10,6 +10,9 @@ class FQCSManager:
         self.__last_check_min_x = None
         return
 
+    def get_last_check_min_x(self):
+        return self.__last_check_min_x
+
     def get_last_group_count(self):
         return self.__last_group_count
 
@@ -30,7 +33,6 @@ class FQCSManager:
             area = dimA * dimB
             if max_seperated_area is not None and area >= max_seperated_area:
                 not_sep_count += 1
-                continue
             next_idx = i - 1
             if next_idx > -1:
                 next_box = boxes[next_idx]
@@ -75,8 +77,6 @@ class FQCSManager:
                 check_group = i
             print("Group", i, len(g), final_sizes[i])
         self.__last_check_min_x = tmp_last_check_min_x
-        print("Check group", check_group, "Last check:",
-              self.__last_check_min_x)
 
         group_count = len(final_grouped)
         self.__last_group_count = group_count
@@ -84,7 +84,6 @@ class FQCSManager:
 
     def __calc_status(self, group):
         final_cen_x = self.__get_cen_x(group)
-        print("Cenx:", final_cen_x, "Last:", self.__last_check_min_x)
         return self.__last_check_min_x is not None and final_cen_x > self.__last_check_min_x
 
     def __devide_range_size(self, sizes, group_count):
@@ -102,7 +101,10 @@ class FQCSManager:
             elif diff > max_2:
                 max_2 = diff
                 range_2 = (sizes[i], sizes[i + 1])
-        range_2 = range_2 if range_2 is not None else (range_1[1], range_1[0])
+        min_1 = np.min(range_1)
+        min_2 = np.min(range_2)
+        if min_1 < min_2:
+            return (range_1[1], range_2[0])
         return (range_2[1], range_1[0])
 
     def get_min_x(self, group):
