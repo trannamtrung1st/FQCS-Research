@@ -335,8 +335,14 @@ def find_contours_using_range(image, d_cfg):
     hsvFrame = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsvFrame, d_cfg['cr_from'], d_cfg['adj_cr_to'])
     h, w, _ = image.shape
-    im_th = np.zeros((h, w), dtype="ubyte")
-    im_th[mask < 127] = 255
+    inv = d_cfg["color_inv"]
+    if inv:
+        im_th = np.ones((h, w), dtype="ubyte") * 255
+        im_th[mask < 127] = 0
+    else:
+        im_th = np.zeros((h, w), dtype="ubyte")
+        im_th[mask < 127] = 255
+
     cnts = cv2.findContours(im_th, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
     cnts, areas = helper.sort_contours_area(cnts)
@@ -347,8 +353,10 @@ def find_contours_using_range(image, d_cfg):
 
 def find_contours_using_thresh(image, d_cfg):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    ret, thresh = cv2.threshold(gray, d_cfg['adj_bg_thresh'], 255,
-                                cv2.THRESH_BINARY)
+    inv = d_cfg["thresh_inv"]
+    ret, thresh = cv2.threshold(
+        gray, d_cfg['adj_bg_thresh'], 255,
+        cv2.THRESH_BINARY_INV if inv else cv2.THRESH_BINARY)
     cnts = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
     cnts, areas = helper.sort_contours_area(cnts)

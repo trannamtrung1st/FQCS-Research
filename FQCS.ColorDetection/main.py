@@ -79,7 +79,7 @@ async def main():
             main_cfg = cfg
             break
     if main_cfg is None: raise Exception("Invalid configuration")
-    # main_cfg["detect_method"] = "edge"
+    # main_cfg["detect_method"] = "range"
     manager.load_sample_images()
     await manager.load_model(main_cfg)
 
