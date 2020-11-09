@@ -2,7 +2,6 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 from FQCS_lib.FQCS import helper
-from FQCS_lib.FQCS.tf2_yolov4 import helper as y_helper
 from FQCS_lib.FQCS.manager import FQCSManager
 from FQCS_lib.FQCS import detector
 import os
@@ -49,13 +48,8 @@ async def main():
                 c, rect, dimA, dimB, box, tl, tr, br, bl, minx, maxx, cenx = b
                 cur_size = sizes[idx][b_idx]
                 lH, lW = cur_size
-                cv2.drawContours(resized_image, [box.astype("int")], -1,
-                                 (0, 255, 0), 2)
-                cv2.putText(resized_image, f"{idx}/ {lW:.1f} {unit}",
-                            (tl[0], tl[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.65,
-                            (255, 255, 0), 2)
-                cv2.putText(resized_image, f"{lH:.1f} {unit}", (br[0], br[1]),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 0), 2)
+                helper.draw_boxes_and_sizes(resized_image, idx, box, lH, lW,
+                                            unit, tl, br)
         cv2.imshow("Processed", resized_image)
         cv2.imshow("Contours processed", proc)
         cv2.waitKey(1)
@@ -148,7 +142,7 @@ async def main():
 
                 # output
                 err_cfg = main_cfg["err_cfg"]
-                y_helper.draw_results(
+                helper.draw_yolo_results(
                     images,
                     boxes,
                     scores,
