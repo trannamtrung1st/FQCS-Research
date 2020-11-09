@@ -2,7 +2,6 @@ import numpy as np
 import cv2
 from . import helper
 import imutils
-import asyncio
 from .tf2_yolov4.anchors import YOLOV4_ANCHORS
 from .tf2_yolov4.model import YOLOv4
 import json
@@ -308,13 +307,11 @@ def detect_color_difference(left,
                             max_diff=None,
                             apply_amp=True):
     # START
-    left_task = asyncio.create_task(
-        find_color_diff(left, true_left, amplify_thresh, supp_thresh,
-                        amplify_rate, max_diff, apply_amp))
-    right_task = asyncio.create_task(
-        find_color_diff(right, true_right, amplify_thresh, supp_thresh,
-                        amplify_rate, max_diff, apply_amp))
-    return left_task, right_task
+    left_co = find_color_diff(left, true_left, amplify_thresh, supp_thresh,
+                              amplify_rate, max_diff, apply_amp)
+    right_co = find_color_diff(right, true_right, amplify_thresh, supp_thresh,
+                               amplify_rate, max_diff, apply_amp)
+    return left_co, right_co
 
 
 def find_contours_using_edge(image, d_cfg):
