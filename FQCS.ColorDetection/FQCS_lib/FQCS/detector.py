@@ -2,11 +2,11 @@ import numpy as np
 import cv2
 from . import helper
 import imutils
-import asyncio
 from .tf2_yolov4.anchors import YOLOV4_ANCHORS
 from .tf2_yolov4.model import YOLOv4
 import json
 import os
+import datetime
 
 CONFIG_FILE = "config.json"
 SAMPLE_LEFT_FILE = "sample_left.jpg"
@@ -73,6 +73,7 @@ def default_d_config():
     return dict(max_boxes=10,
                 bg_thresh=110,
                 adj_bg_thresh=110,
+                thresh_inv=False,
                 light_adj_thresh=65,
                 alpha=1.0,
                 beta=0,
@@ -81,6 +82,7 @@ def default_d_config():
                 kernel=(5, 5),
                 d_kernel=np.ones((5, 5)),
                 e_kernel=None,
+                color_inv=False,
                 cr_from=(0, 0, 0),
                 cr_to=cr_to,
                 adj_cr_to=cr_to)
@@ -117,7 +119,12 @@ def default_detector_config():
     err_cfg = default_err_config()
     d_cfg = default_d_config()
     sim_cfg = default_sim_config()
-    detector_config = dict(min_width_per=0.1,
+    detector_config = dict(name="Camera-" + str(datetime.datetime.now()),
+                           camera_uri=None,
+                           is_main=True,
+                           is_color_enable=True,
+                           is_defect_enable=True,
+                           min_width_per=0.1,
                            min_height_per=0.7,
                            stop_condition=0,
                            detect_range=(0.2, 0.8),
@@ -134,63 +141,65 @@ def default_detector_config():
     return detector_config
 
 
-def save_json_cfg(cfg, folder_path):
+def save_json_cfg(cfgs, folder_path):
     cfg_path = os.path.join(folder_path, CONFIG_FILE)
-    d_kernel = cfg["d_cfg"]["d_kernel"]
-    e_kernel = cfg["d_cfg"]["e_kernel"]
-    if d_kernel is not None:
-        cfg["d_cfg"]["d_kernel"] = d_kernel.shape
-    if e_kernel is not None:
-        cfg["d_cfg"]["e_kernel"] = e_kernel.shape
+    for cfg in cfgs:
+        d_kernel = cfg["d_cfg"]["d_kernel"]
+        e_kernel = cfg["d_cfg"]["e_kernel"]
+        if d_kernel is not None:
+            cfg["d_cfg"]["d_kernel"] = d_kernel.shape
+        if e_kernel is not None:
+            cfg["d_cfg"]["e_kernel"] = e_kernel.shape
     with open(cfg_path, 'w') as fo:
-        json.dump(cfg, fo, indent=2)
+        json.dump(cfgs, fo, indent=2)
 
 
 def load_json_cfg(folder_path):
     cfg_path = os.path.join(folder_path, CONFIG_FILE)
     with open(cfg_path) as fi:
-        cfg = json.load(fi)
-        kernel = cfg['d_cfg']['kernel']
-        kernel = (kernel[0], kernel[1])
-        cfg['d_cfg']['kernel'] = kernel
-        d_kernel = cfg['d_cfg']['d_kernel']
-        e_kernel = cfg['d_cfg']['e_kernel']
-        if d_kernel is not None:
-            d_kernel = np.ones((d_kernel[0], d_kernel[1]))
-            cfg['d_cfg']['d_kernel'] = d_kernel
-        if e_kernel is not None:
-            e_kernel = np.ones((e_kernel[0], e_kernel[1]))
-            cfg['d_cfg']['e_kernel'] = e_kernel
-        cr_from = cfg['d_cfg']['cr_from']
-        cr_to = cfg['d_cfg']['cr_to']
-        cr_from = (cr_from[0], cr_from[1], cr_from[2])
-        cr_to = (cr_to[0], cr_to[1], cr_to[2])
-        cfg['d_cfg']['cr_from'] = cr_from
-        cfg['d_cfg']['cr_to'] = cr_to
-        cfg['d_cfg']['adj_cr_to'] = cr_to
-        bg_thresh = cfg['d_cfg']['bg_thresh']
-        cfg['d_cfg']['adj_bg_thresh'] = bg_thresh
+        cfgs = json.load(fi)
+        for cfg in cfgs:
+            kernel = cfg['d_cfg']['kernel']
+            kernel = (kernel[0], kernel[1])
+            cfg['d_cfg']['kernel'] = kernel
+            d_kernel = cfg['d_cfg']['d_kernel']
+            e_kernel = cfg['d_cfg']['e_kernel']
+            if d_kernel is not None:
+                d_kernel = np.ones((d_kernel[0], d_kernel[1]))
+                cfg['d_cfg']['d_kernel'] = d_kernel
+            if e_kernel is not None:
+                e_kernel = np.ones((e_kernel[0], e_kernel[1]))
+                cfg['d_cfg']['e_kernel'] = e_kernel
+            cr_from = cfg['d_cfg']['cr_from']
+            cr_to = cfg['d_cfg']['cr_to']
+            cr_from = (cr_from[0], cr_from[1], cr_from[2])
+            cr_to = (cr_to[0], cr_to[1], cr_to[2])
+            cfg['d_cfg']['cr_from'] = cr_from
+            cfg['d_cfg']['cr_to'] = cr_to
+            cfg['d_cfg']['adj_cr_to'] = cr_to
+            bg_thresh = cfg['d_cfg']['bg_thresh']
+            cfg['d_cfg']['adj_bg_thresh'] = bg_thresh
 
-        detect_range = cfg['detect_range']
-        detect_range = (detect_range[0], detect_range[1])
-        img_size = cfg['color_cfg']['img_size']
-        img_size = (img_size[0], img_size[1])
-        amplify_thresh = cfg['color_cfg']['amplify_thresh']
-        amplify_thresh = (amplify_thresh[0], amplify_thresh[1],
-                          amplify_thresh[2])
-        cfg['detect_range'] = detect_range
-        cfg['color_cfg']['amplify_thresh'] = amplify_thresh
-        cfg['color_cfg']['img_size'] = img_size
+            detect_range = cfg['detect_range']
+            detect_range = (detect_range[0], detect_range[1])
+            img_size = cfg['color_cfg']['img_size']
+            img_size = (img_size[0], img_size[1])
+            amplify_thresh = cfg['color_cfg']['amplify_thresh']
+            amplify_thresh = (amplify_thresh[0], amplify_thresh[1],
+                              amplify_thresh[2])
+            cfg['detect_range'] = detect_range
+            cfg['color_cfg']['amplify_thresh'] = amplify_thresh
+            cfg['color_cfg']['img_size'] = img_size
 
-        err_cfg = cfg["err_cfg"]
-        img_size = err_cfg["img_size"]
-        inp_shape = err_cfg["inp_shape"]
-        img_size = (img_size[0], img_size[1])
-        inp_shape = (inp_shape[0], inp_shape[1], inp_shape[2])
-        err_cfg['img_size'] = img_size
-        err_cfg['inp_shape'] = inp_shape
+            err_cfg = cfg["err_cfg"]
+            img_size = err_cfg["img_size"]
+            inp_shape = err_cfg["inp_shape"]
+            img_size = (img_size[0], img_size[1])
+            inp_shape = (inp_shape[0], inp_shape[1], inp_shape[2])
+            err_cfg['img_size'] = img_size
+            err_cfg['inp_shape'] = inp_shape
 
-    return cfg
+    return cfgs
 
 
 def preprocess_for_color_diff(img,
@@ -298,13 +307,11 @@ def detect_color_difference(left,
                             max_diff=None,
                             apply_amp=True):
     # START
-    left_task = asyncio.create_task(
-        find_color_diff(left, true_left, amplify_thresh, supp_thresh,
-                        amplify_rate, max_diff, apply_amp))
-    right_task = asyncio.create_task(
-        find_color_diff(right, true_right, amplify_thresh, supp_thresh,
-                        amplify_rate, max_diff, apply_amp))
-    return left_task, right_task
+    left_co = find_color_diff(left, true_left, amplify_thresh, supp_thresh,
+                              amplify_rate, max_diff, apply_amp)
+    right_co = find_color_diff(right, true_right, amplify_thresh, supp_thresh,
+                               amplify_rate, max_diff, apply_amp)
+    return left_co, right_co
 
 
 def find_contours_using_edge(image, d_cfg):
@@ -328,8 +335,14 @@ def find_contours_using_range(image, d_cfg):
     hsvFrame = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsvFrame, d_cfg['cr_from'], d_cfg['adj_cr_to'])
     h, w, _ = image.shape
-    im_th = np.zeros((h, w), dtype="ubyte")
-    im_th[mask < 127] = 255
+    inv = d_cfg["color_inv"]
+    if inv:
+        im_th = np.ones((h, w), dtype="ubyte") * 255
+        im_th[mask < 127] = 0
+    else:
+        im_th = np.zeros((h, w), dtype="ubyte")
+        im_th[mask < 127] = 255
+
     cnts = cv2.findContours(im_th, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
     cnts, areas = helper.sort_contours_area(cnts)
@@ -340,8 +353,10 @@ def find_contours_using_range(image, d_cfg):
 
 def find_contours_using_thresh(image, d_cfg):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    ret, thresh = cv2.threshold(gray, d_cfg['adj_bg_thresh'], 255,
-                                cv2.THRESH_BINARY)
+    inv = d_cfg["thresh_inv"]
+    ret, thresh = cv2.threshold(
+        gray, d_cfg['adj_bg_thresh'], 255,
+        cv2.THRESH_BINARY_INV if inv else cv2.THRESH_BINARY)
     cnts = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
     cnts, areas = helper.sort_contours_area(cnts)
@@ -387,6 +402,26 @@ def detect_one_and_size(orig_img: np.ndarray, image: np.ndarray,
     warped = helper.get_warped_box(image, rect, box)
     return (warped, (c, rect, dimA, dimB, box, tl, tr, br, bl, min_x, max_x,
                      center_x))
+
+
+def detect_pair_side_cam(image: np.ndarray, find_contours_func, d_cfg, boxes):
+    # start
+    pair = []
+    h, w = image.shape[:2]
+    boxes_count = len(boxes)
+    cnts = [boxes[i][0] for i in range(boxes_count)]
+    cnts = np.asarray(cnts)
+    helper.fill_contours(image, cnts)
+    min_x, max_x = w, 0
+    for item in boxes:
+        c, rect, dimA, dimB, box, tl, tr, br, bl, cur_min_x, cur_max_x, cur_center_x = item
+        min_x = min(cur_min_x, min_x)
+        max_x = max(cur_max_x, max_x)
+        warped = helper.get_warped_box(image, rect, box)
+        pair.append((warped, box, dimA, dimB))
+
+    pair = sorted(pair, key=lambda x: x[1][1][0], reverse=True)
+    return pair, image
 
 
 def detect_pair_and_size(image: np.ndarray,
