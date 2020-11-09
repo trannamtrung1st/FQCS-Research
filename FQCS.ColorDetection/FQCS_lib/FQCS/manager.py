@@ -1,37 +1,44 @@
 import numpy as np
-from FQCS_lib.FQCS import detector, helper, fqcs_api, fqcs_constants
-from FQCS_lib.FQCS.tf2_yolov4 import helper as y_helper
+from . import detector, helper, fqcs_api, fqcs_constants
+from .tf2_yolov4 import helper as y_helper
 import os
 import asyncio
+import cv2
 
 COMPARE_FACTOR = 1.5
 
 
 class FQCSManager:
     def __init__(self, config_folder=None):
+        self.__config_folder = config_folder
         if config_folder is None:
             configs = {}
         else:
             configs = detector.load_json_cfg(config_folder)
         self.__configs = configs
         self.__model = None
-        self.load_model()
-        self.self.__sample_area = None
-
+        self.__sample_area = None
+        self.__sample_left = None
+        self.__sample_right = None
         self.__last_group_count = 0
         self.__last_check_min_x = None
         self.__speed = 1
-
-        sample_left_path = os.path.join(config_folder,
-                                        detector.SAMPLE_LEFT_FILE)
-        sample_right_path = os.path.join(config_folder,
-                                         detector.SAMPLE_RIGHT_FILE)
-        sample_left, sample_right = None, None
-        if os.path.exists(sample_left_path):
-            self.__sample_left = cv2.imread(sample_left_path)
-            self.__sample_right = cv2.imread(sample_right_path)
-            self.__sample_area = sample_left.shape[0] * sample_left.shape[1]
         return
+
+    def load_sample_images(self):
+        self.__sample_left_path = self.get_sample_path(True)
+        self.__sample_right_path = self.get_sample_path(False)
+        if os.path.exists(self.__sample_left_path):
+            self.__sample_left = cv2.imread(self.__sample_left_path)
+            self.__sample_right = cv2.imread(self.__sample_right_path)
+            self.__sample_area = self.__sample_left.shape[
+                0] * self.__sample_left.shape[1]
+
+    def get_sample_path(self, is_left):
+        if is_left:
+            return os.path.join(self.__config_folder,
+                                detector.SAMPLE_LEFT_FILE)
+        return os.path.join(self.__config_folder, detector.SAMPLE_RIGHT_FILE)
 
     def get_configs(self):
         return self.__configs
@@ -174,8 +181,8 @@ class FQCSManager:
                 final_cen_x = cenx
         return final_cen_x
 
-    async def load_model(self):
-        err_cfg = self.__configs["err_cfg"]
+    async def load_model(self, cam_cfg):
+        err_cfg = cam_cfg["err_cfg"]
         weights = err_cfg["weights"]
         if weights is None or not os.path.exists(weights): return
         model = await detector.get_yolov4_model(
@@ -188,6 +195,11 @@ class FQCSManager:
             yolo_score_threshold=err_cfg["yolo_score_threshold"])
         self.__model = model
 
+    def get_find_cnt_func(self, cam_cfg):
+        find_contours_func = detector.get_find_contours_func_by_method(
+            cam_cfg["detect_method"])
+        return find_contours_func
+
     # MAIN
     def extract_boxes(self, cam_cfg, ori_image):
         frame_width, frame_height = cam_cfg["frame_width"], cam_cfg[
@@ -198,9 +210,7 @@ class FQCSManager:
 
         # return
         resized_image = cv2.resize(ori_image, (frame_width, frame_height))
-
-        find_contours_func = detector.get_find_contours_func_by_method(
-            cam_cfg["detect_method"])
+        find_contours_func = self.get_find_cnt_func(cam_cfg)
         d_cfg = cam_cfg['d_cfg']
 
         # adjust thresh
@@ -235,6 +245,8 @@ class FQCSManager:
 
     def detect_groups_and_checked_pair(self, cam_cfg, boxes, resized_image):
         final_grouped, _, _, check_group_idx = self.group_pairs(boxes)
+        find_contours_func = self.get_find_cnt_func(cam_cfg)
+        d_cfg = cam_cfg['d_cfg']
 
         # return
         pair, split_left, split_right, image_detect = None, None, None, None
@@ -267,15 +279,13 @@ class FQCSManager:
                     sizes[-1].append((dimA, dimB))
         return final_grouped, sizes, check_group_idx, pair, split_left, split_right, image_detect
 
-    def compare_sizes(self, cam_cfg, sizes, check_group_idx):
-        h_diff, w_diff = detector.compare_size(sizes[check_group_idx][0],
-                                               sizes[check_group_idx][1],
+    def compare_size(self, cam_cfg, check_size):
+        h_diff, w_diff = detector.compare_size(check_size[0], check_size[1],
                                                cam_cfg)
         return h_diff, w_diff
 
     def preprocess(self, cam_cfg, image, is_left):
         c_cfg = cam_cfg['color_cfg']
-        image = None
         if is_left:
             image = detector.preprocess_for_color_diff(
                 image, c_cfg['img_size'], c_cfg['blur_val'], c_cfg['alpha_l'],
@@ -286,18 +296,15 @@ class FQCSManager:
                 c_cfg['beta_r'], c_cfg['sat_adj'])
         return image
 
-    def preprocess_images(self, cam_cfg, pair):
-        left, right = pair
-        # return
-        left, right = left[0], right[0]
+    def preprocess_images(self, cam_cfg, left_img, right_img):
         # start
-        pre_sample_left = self.preprocess(cam_cfg, self.__sample_left)
-        pre_sample_right = self.preprocess(cam_cfg, self.__sample_right)
-        pre_left = self.preprocess(cam_cfg, left)
-        pre_right = self.preprocess(cam_cfg, right)
+        pre_sample_left = self.preprocess(cam_cfg, self.__sample_left, True)
+        pre_sample_right = self.preprocess(cam_cfg, self.__sample_right, False)
+        pre_left = self.preprocess(cam_cfg, left_img, True)
+        pre_right = self.preprocess(cam_cfg, right_img, False)
         return pre_left, pre_right, pre_sample_left, pre_sample_right
 
-    async def detect_asym(self, cam_cfg, pre_left, pre_right, pre_sample_left,
+    def detect_asym(self, cam_cfg, pre_left, pre_right, pre_sample_left,
                           pre_sample_right):
         # Similarity compare
         sim_cfg = cam_cfg["sim_cfg"]
@@ -313,19 +320,15 @@ class FQCSManager:
                 sim_cfg['C1'], sim_cfg['C2'], sim_cfg['psnr_trigger'],
                 sim_cfg['asym_amp_thresh'], sim_cfg['asym_amp_rate'],
                 sim_cfg['re_calc_factor_right'], sim_cfg['min_similarity']))
-        left_result = await asymc_left_task
-        right_result = await asym_right_task
-        return left_result, right_result
+        return asym_left_task, asym_right_task
 
-    async def detect_errors(self, cam_cfg, left_img, right_img):
+    def detect_errors(self, cam_cfg, images):
         err_cfg = cam_cfg["err_cfg"]
-        images = [left_img, right_img]
         err_task = asyncio.create_task(
             detector.detect_errors(self.__model, images, err_cfg["img_size"]))
-        err_result = await err_task
-        return err_result
+        return err_task
 
-    async def compare_colors(self, cam_cfg, pre_left, pre_right,
+    def compare_colors(self, cam_cfg, pre_left, pre_right,
                              pre_sample_left, pre_sample_right):
         c_cfg = cam_cfg["color_cfg"]
         left_coroutine, right_coroutine = detector.detect_color_difference(
@@ -334,6 +337,4 @@ class FQCSManager:
             c_cfg['amplify_rate'], c_cfg['max_diff'])
         left_task = asyncio.create_task(left_coroutine)
         right_task = asyncio.create_task(right_coroutine)
-        left_results = await left_task
-        right_results = await right_task
-        return left_results, right_results
+        return left_task, right_task
