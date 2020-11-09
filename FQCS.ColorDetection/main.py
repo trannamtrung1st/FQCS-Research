@@ -15,11 +15,17 @@ async def main():
     sample_left_path = os.path.join(config_folder, detector.SAMPLE_LEFT_FILE)
     sample_right_path = os.path.join(config_folder, detector.SAMPLE_RIGHT_FILE)
 
-    detector_cfg = detector.load_json_cfg(config_folder)
-    # detector_cfg["detect_method"] = "edge"
+    configs = detector.load_json_cfg(config_folder)
+    main_cfg = None
+    for cfg in configs:
+        if cfg["is_main"] == True:
+            main_cfg = cfg
+            break
+    if main_cfg is None: raise Exception("Invalid configuration")
+    # main_cfg["detect_method"] = "edge"
     manager = FQCSManager()
 
-    err_cfg = detector_cfg["err_cfg"]
+    err_cfg = main_cfg["err_cfg"]
     model = asyncio.create_task(
         detector.get_yolov4_model(
             inp_shape=err_cfg["inp_shape"],
@@ -31,11 +37,11 @@ async def main():
             yolo_score_threshold=err_cfg["yolo_score_threshold"]))
 
     # uri = "test2.mp4"
-    uri = 0
+    uri = main_cfg["camera_uri"]
     cap = cv2.VideoCapture(uri)
-    frame_width, frame_height = detector_cfg["frame_width"], detector_cfg[
+    frame_width, frame_height = main_cfg["frame_width"], main_cfg[
         "frame_height"]
-    min_width, min_height = detector_cfg["min_width_per"], detector_cfg[
+    min_width, min_height = main_cfg["min_width_per"], main_cfg[
         "min_height_per"]
     min_width, min_height = frame_width * min_width, frame_height * min_height
     # cap.set(cv2.CAP_PROP_POS_FRAMES, 1100)
@@ -56,11 +62,11 @@ async def main():
         cv2.imshow("Original", image)
 
         find_contours_func = detector.get_find_contours_func_by_method(
-            detector_cfg["detect_method"])
-        d_cfg = detector_cfg['d_cfg']
+            main_cfg["detect_method"])
+        d_cfg = main_cfg['d_cfg']
 
         # adjust thresh
-        if (detector_cfg["detect_method"] == "thresh"):
+        if (main_cfg["detect_method"] == "thresh"):
             adj_thresh = d_cfg["light_adj_thresh"]
             if adj_thresh is not None and adj_thresh > 0:
                 adj_bg_thresh = helper.adjust_thresh_by_brightness(
@@ -68,7 +74,7 @@ async def main():
             else:
                 adj_bg_thresh = d_cfg["bg_thresh"]
             d_cfg["adj_bg_thresh"] = adj_bg_thresh
-        elif (detector_cfg["detect_method"] == "range"):
+        elif (main_cfg["detect_method"] == "range"):
             adj_thresh = d_cfg["light_adj_thresh"]
             if adj_thresh is not None and adj_thresh > 0:
                 adj_cr_to = helper.adjust_crange_by_brightness(
@@ -83,7 +89,7 @@ async def main():
             d_cfg,
             min_width=min_width,
             min_height=min_height,
-            detect_range=detector_cfg['detect_range'])
+            detect_range=main_cfg['detect_range'])
 
         final_grouped, _, _, check_group_idx = manager.group_pairs(
             boxes, sample_area)
@@ -101,13 +107,13 @@ async def main():
                 find_contours_func,
                 d_cfg,
                 check_group,
-                stop_condition=detector_cfg['stop_condition'])
+                stop_condition=main_cfg['stop_condition'])
             cv2.imshow("Current detected", image_detect)
             final_grouped[check_group_idx] = check_group
 
         # output
-        unit = detector_cfg["length_unit"]
-        per_10px = detector_cfg["length_per_10px"]
+        unit = main_cfg["length_unit"]
+        per_10px = main_cfg["length_per_10px"]
         sizes = []
         for idx, group in enumerate(final_grouped):
             for b in group:
@@ -132,7 +138,7 @@ async def main():
             left, right = pair
             left, right = left[0], right[0]
             h_diff, w_diff = detector.compare_size(sizes[0], sizes[1],
-                                                   detector_cfg)
+                                                   main_cfg)
 
             if split_left is not None:
                 # output
@@ -162,7 +168,7 @@ async def main():
                 await asyncio.sleep(0)  # hacky way to trigger task
 
                 # start
-                c_cfg = detector_cfg['color_cfg']
+                c_cfg = main_cfg['color_cfg']
                 pre_sample_left = detector.preprocess_for_color_diff(
                     sample_left, c_cfg['img_size'], c_cfg['blur_val'],
                     c_cfg['alpha_l'], c_cfg['beta_l'], c_cfg['sat_adj'])
@@ -182,7 +188,7 @@ async def main():
                     c_cfg['amplify_rate'], c_cfg['max_diff'])
 
                 # Similarity compare
-                sim_cfg = detector_cfg["sim_cfg"]
+                sim_cfg = main_cfg["sim_cfg"]
                 is_asym_diff_left, avg_asym_left, avg_amp_left, recalc_left, res_list_l, amp_res_list_l = (
                     await detector.detect_asym_diff(
                         pre_left, pre_sample_left, sim_cfg['segments_list'],
@@ -260,10 +266,13 @@ async def main():
 
 
 def save_cfg():
-    detector_cfg = detector.default_detector_config()
-    detector_cfg["length_per_10px"] = 0.65
-    detector_cfg["color_cfg"]["amplify_thresh"] = (1000, 1000, 1000)
-    detector.save_json_cfg(detector_cfg, "./")
+    main_cfg = detector.default_detector_config()
+    main_cfg["length_per_10px"] = 0.65
+    main_cfg["color_cfg"]["amplify_thresh"] = (1000, 1000, 1000)
+    side_cfg = detector.default_detector_config()
+    side_cfg["is_main"] = False
+    cfgs = [main_cfg, side_cfg]
+    detector.save_json_cfg(cfgs, "./")
 
 
 if __name__ == "__main__":
