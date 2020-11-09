@@ -9,6 +9,66 @@ import asyncio
 import os
 
 
+async def activate_side_cams(manager: FQCSManager):
+    configs = manager.get_configs()
+    for cfg in configs:
+        if cfg["is_main"] == True: continue
+        main_cfg = cfg
+        uri = main_cfg["camera_uri"]
+        # cap = cv2.VideoCapture(uri)
+        # _, image = cap.read()
+        image = cv2.imread("dirt.jpg")
+        frame_width, frame_height = main_cfg["frame_width"], main_cfg[
+            "frame_height"]
+        resized_image = cv2.resize(image, (frame_width, frame_height))
+        boxes, proc = manager.extract_boxes(main_cfg, resized_image)
+
+        # output
+        cv2.imshow("Original", resized_image)
+
+        image_detect = resized_image.copy()
+        pair, image_detect = manager.detect_pair_side_cam(
+            main_cfg, boxes, image_detect)
+
+        # output
+        if image_detect is not None:
+            cv2.imshow("Current detected", image_detect)
+
+        # output
+        unit = main_cfg["length_unit"]
+        for b in boxes:
+            c, rect, dimA, dimB, box, tl, tr, br, bl, minx, maxx, cenx = b
+            helper.draw_boxes(resized_image, box)
+        cv2.imshow("Processed", resized_image)
+        cv2.imshow("Contours processed", proc)
+
+        if (pair is not None):
+            pair_len = len(pair)
+            images = [item[0] for item in pair]
+            if main_cfg["is_defect_enable"]:
+                err_task = manager.detect_errors(main_cfg, images)
+                boxes, scores, classes, valid_detections = await err_task
+                err_cfg = main_cfg["err_cfg"]
+                helper.draw_yolo_results(
+                    images,
+                    boxes,
+                    scores,
+                    classes,
+                    err_cfg["classes"],
+                    err_cfg["img_size"],
+                    min_score=err_cfg["yolo_score_threshold"])
+
+            fig, axs = plt.subplots(1, pair_len if pair_len > 1 else 2)
+            for idx, item in enumerate(pair):
+                # output
+                axs[idx].imshow(images[idx])
+                axs[idx].set_title(f"Detect {idx}")
+            plt.show()
+
+        # output
+        cv2.waitKey(0)
+
+
 async def main():
     config_folder = "./"
     manager = FQCSManager(config_folder=config_folder)
@@ -29,7 +89,10 @@ async def main():
 
     while True:
         _, image = cap.read()
-        resized_image, boxes, proc = manager.extract_boxes(main_cfg, image)
+        frame_width, frame_height = main_cfg["frame_width"], main_cfg[
+            "frame_height"]
+        resized_image = cv2.resize(image, (frame_width, frame_height))
+        boxes, proc = manager.extract_boxes(main_cfg, resized_image)
 
         # output
         cv2.imshow("Original", resized_image)
@@ -177,6 +240,9 @@ async def main():
                 axs[1].imshow(sample_right)
                 axs[2].imshow(images[1])
                 plt.show()
+
+                # side cameras
+                await activate_side_cams(manager)
 
 
 def save_cfg():

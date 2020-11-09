@@ -238,8 +238,12 @@ def draw_yolo_results(images,
 
 
 def draw_boxes_and_sizes(resized_image, group_idx, box, lH, lW, unit, tl, br):
-    cv2.drawContours(resized_image, [box.astype("int")], -1, (0, 255, 0), 2)
+    draw_boxes(resized_image, box)
     cv2.putText(resized_image, f"{group_idx}/ {lW:.1f} {unit}", (tl[0], tl[1]),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 0), 2)
     cv2.putText(resized_image, f"{lH:.1f} {unit}", (br[0], br[1]),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 0), 2)
+
+
+def draw_boxes(resized_image, box):
+    cv2.drawContours(resized_image, [box.astype("int")], -1, (0, 255, 0), 2)

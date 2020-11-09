@@ -200,7 +200,7 @@ class FQCSManager:
         return find_contours_func
 
     # MAIN
-    def extract_boxes(self, cam_cfg, ori_image):
+    def extract_boxes(self, cam_cfg, resized_image):
         frame_width, frame_height = cam_cfg["frame_width"], cam_cfg[
             "frame_height"]
         min_width, min_height = cam_cfg["min_width_per"], cam_cfg[
@@ -208,7 +208,6 @@ class FQCSManager:
         min_width, min_height = frame_width * min_width, frame_height * min_height
 
         # return
-        resized_image = cv2.resize(ori_image, (frame_width, frame_height))
         find_contours_func = self.get_find_cnt_func(cam_cfg)
         d_cfg = cam_cfg['d_cfg']
 
@@ -240,7 +239,13 @@ class FQCSManager:
             min_height=min_height,
             detect_range=cam_cfg['detect_range'])
 
-        return resized_image, boxes, proc
+        return boxes, proc
+
+    def detect_pair_side_cam(self, cam_cfg, boxes, image_detect):
+        find_contours_func = self.get_find_cnt_func(cam_cfg)
+        pair, image_detect = detector.detect_pair_side_cam(
+            image_detect, find_contours_func, cam_cfg["d_cfg"], boxes)
+        return pair, image_detect
 
     def detect_groups_and_checked_pair(self, cam_cfg, boxes, resized_image):
         final_grouped, _, _, check_group_idx = self.group_pairs(boxes)
@@ -304,7 +309,7 @@ class FQCSManager:
         return pre_left, pre_right, pre_sample_left, pre_sample_right
 
     def detect_asym(self, cam_cfg, pre_left, pre_right, pre_sample_left,
-                          pre_sample_right):
+                    pre_sample_right):
         # Similarity compare
         sim_cfg = cam_cfg["sim_cfg"]
         asym_left_task = asyncio.create_task(
@@ -327,8 +332,8 @@ class FQCSManager:
             detector.detect_errors(self.__model, images, err_cfg["img_size"]))
         return err_task
 
-    def compare_colors(self, cam_cfg, pre_left, pre_right,
-                             pre_sample_left, pre_sample_right):
+    def compare_colors(self, cam_cfg, pre_left, pre_right, pre_sample_left,
+                       pre_sample_right):
         c_cfg = cam_cfg["color_cfg"]
         left_coroutine, right_coroutine = detector.detect_color_difference(
             pre_left, pre_right, pre_sample_left, pre_sample_right,

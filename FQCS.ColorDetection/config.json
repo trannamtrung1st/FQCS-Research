@@ -111,7 +111,7 @@
   },
   {
     "name": "Camera-2020-11-09 14:59:05.046790",
-    "camera_uri": "test1.mp4",
+    "camera_uri": 0,
     "is_main": false,
     "is_color_enable": true,
     "is_defect_enable": true,
@@ -185,7 +185,7 @@
     "d_cfg": {
       "max_boxes": 10,
       "bg_thresh": 110,
-      "adj_bg_thresh": 110,
+      "adj_bg_thresh": 0,
       "thresh_inv": false,
       "light_adj_thresh": 65,
       "alpha": 1.0,
