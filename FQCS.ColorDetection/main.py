@@ -88,25 +88,29 @@ async def main():
             else:
                 pre_left, pre_right, pre_sample_left, pre_sample_right = manager.preprocess_images(
                     main_cfg, left, right)
+                images = [left, right]
 
                 # Similarity compare
                 sim_cfg = main_cfg["sim_cfg"]
                 left_asym_task, right_asym_task = manager.detect_asym(
                     main_cfg, pre_left, pre_right, pre_sample_left,
                     pre_sample_right)
-
-                images = [left, right]
-                err_task = manager.detect_errors(main_cfg, images)
-
-                left_color_task, right_color_task = manager.compare_colors(
-                    main_cfg, pre_left, pre_right, pre_sample_left,
-                    pre_sample_right)
-
                 is_asym_diff_left, avg_asym_left, avg_amp_left, recalc_left, res_list_l, amp_res_list_l = await left_asym_task
                 is_asym_diff_right, avg_asym_right, avg_amp_right, recalc_right, res_list_r, amp_res_list_r = await right_asym_task
-                left_color_results = await left_color_task
-                right_color_results = await right_color_task
-                boxes, scores, classes, valid_detections = await err_task
+                has_asym = is_asym_diff_left or is_asym_diff_right
+                has_color_checked, has_error_checked = False, False
+                if has_asym:
+                    if main_cfg["is_color_enable"]:
+                        has_color_checked = True
+                        left_color_task, right_color_task = manager.compare_colors(
+                            main_cfg, pre_left, pre_right, pre_sample_left,
+                            pre_sample_right)
+                        left_color_results = await left_color_task
+                        right_color_results = await right_color_task
+                    if main_cfg["is_defect_enable"]:
+                        has_error_checked = True
+                        err_task = manager.detect_errors(main_cfg, images)
+                        boxes, scores, classes, valid_detections = await err_task
 
                 # output
                 print("Min similarity: ", sim_cfg['min_similarity'])
@@ -141,28 +145,34 @@ async def main():
                 plt.show()
 
                 # output
-                err_cfg = main_cfg["err_cfg"]
-                helper.draw_yolo_results(
-                    images,
-                    boxes,
-                    scores,
-                    classes,
-                    err_cfg["classes"],
-                    err_cfg["img_size"],
-                    min_score=err_cfg["yolo_score_threshold"])
+                if has_error_checked:
+                    err_cfg = main_cfg["err_cfg"]
+                    helper.draw_yolo_results(
+                        images,
+                        boxes,
+                        scores,
+                        classes,
+                        err_cfg["classes"],
+                        err_cfg["img_size"],
+                        min_score=err_cfg["yolo_score_threshold"])
 
-                print("Left", left_color_results[1], left_color_results[2])
-                print("Right", right_color_results[1], right_color_results[2])
+                title_left, title_right = "Left", "Right"
+                if has_color_checked:
+                    print("Left", left_color_results[1], left_color_results[2])
+                    print("Right", right_color_results[1],
+                          right_color_results[2])
+                    if left_color_results[3]:
+                        title_left = "Different left"
+                    if right_color_results[3]:
+                        title_right = "Different right"
                 fig, axs = plt.subplots(1, 3)
-                if (left_color_results[3]):
-                    plt.title("Different left")
+                plt.title(title_left)
                 axs[0].imshow(left)
                 axs[1].imshow(sample_left)
                 axs[2].imshow(images[0])
                 plt.show()
                 fig, axs = plt.subplots(1, 3)
-                if (right_color_results[3]):
-                    plt.title("Different right")
+                plt.title(title_right)
                 axs[0].imshow(right)
                 axs[1].imshow(sample_right)
                 axs[2].imshow(images[1])
