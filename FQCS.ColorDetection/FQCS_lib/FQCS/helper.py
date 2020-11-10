@@ -247,3 +247,9 @@ def draw_boxes_and_sizes(resized_image, group_idx, box, lH, lW, unit, tl, br):
 
 def draw_boxes(resized_image, box):
     cv2.drawContours(resized_image, [box.astype("int")], -1, (0, 255, 0), 2)
+
+
+def return_result(val, info):
+    if info is None:
+        return val
+    info[0][info[1]] = val

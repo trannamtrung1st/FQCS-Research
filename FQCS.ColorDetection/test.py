@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from FQCS_lib.FQCS.manager import FQCSManager
 from FQCS_lib.FQCS import fqcs_constants, fqcs_api, helper
 import os
-import asyncio
+import trio
 import os
 
 API_URL = "http://localhost:60873"
@@ -23,4 +23,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    trio.run(main)

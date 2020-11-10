@@ -5,7 +5,7 @@ from FQCS_lib.FQCS import helper
 from FQCS_lib.FQCS.manager import FQCSManager
 from FQCS_lib.FQCS import detector
 import os
-import asyncio
+import trio
 import os
 
 
@@ -46,8 +46,8 @@ async def activate_side_cams(manager: FQCSManager):
             pair_len = len(pair)
             images = [item[0] for item in pair]
             if main_cfg["is_defect_enable"]:
-                err_task = manager.detect_errors(main_cfg, images)
-                boxes, scores, classes, valid_detections = await err_task
+                boxes, scores, classes, valid_detections = await manager.detect_errors(
+                    main_cfg, images, None)
                 err_cfg = main_cfg["err_cfg"]
                 helper.draw_yolo_results(
                     images,
@@ -155,25 +155,29 @@ async def main():
 
                 # Similarity compare
                 sim_cfg = main_cfg["sim_cfg"]
-                left_asym_task, right_asym_task = manager.detect_asym(
+                left_result, right_result = await manager.detect_asym(
                     main_cfg, pre_left, pre_right, pre_sample_left,
-                    pre_sample_right)
-                is_asym_diff_left, avg_asym_left, avg_amp_left, recalc_left, res_list_l, amp_res_list_l = await left_asym_task
-                is_asym_diff_right, avg_asym_right, avg_amp_right, recalc_right, res_list_r, amp_res_list_r = await right_asym_task
+                    pre_sample_right, None)
+                is_asym_diff_left, avg_asym_left, avg_amp_left, recalc_left, res_list_l, amp_res_list_l = left_result
+                is_asym_diff_right, avg_asym_right, avg_amp_right, recalc_right, res_list_r, amp_res_list_r = right_result
                 has_asym = is_asym_diff_left or is_asym_diff_right
                 has_color_checked, has_error_checked = False, False
+                result_dict = {}
                 if has_asym:
-                    if main_cfg["is_color_enable"]:
-                        has_color_checked = True
-                        left_color_task, right_color_task = manager.compare_colors(
-                            main_cfg, pre_left, pre_right, pre_sample_left,
-                            pre_sample_right)
-                        left_color_results = await left_color_task
-                        right_color_results = await right_color_task
-                    if main_cfg["is_defect_enable"]:
-                        has_error_checked = True
-                        err_task = manager.detect_errors(main_cfg, images)
-                        boxes, scores, classes, valid_detections = await err_task
+                    async with trio.open_nursery() as nursery:
+                        if main_cfg["is_color_enable"]:
+                            has_color_checked = True
+                            nursery.start_soon(manager.compare_colors,
+                                               main_cfg, pre_left, pre_right,
+                                               pre_sample_left,
+                                               pre_sample_right,
+                                               (result_dict, "color_results"))
+
+                        if main_cfg["is_defect_enable"]:
+                            has_error_checked = True
+                            nursery.start_soon(manager.detect_errors, main_cfg,
+                                               images,
+                                               (result_dict, "err_results"))
 
                 # output
                 print("Min similarity: ", sim_cfg['min_similarity'])
@@ -209,6 +213,8 @@ async def main():
 
                 # output
                 if has_error_checked:
+                    boxes, scores, classes, valid_detections = result_dict[
+                        "err_results"]
                     err_cfg = main_cfg["err_cfg"]
                     helper.draw_yolo_results(
                         images,
@@ -221,6 +227,9 @@ async def main():
 
                 title_left, title_right = "Left", "Right"
                 if has_color_checked:
+                    left_color_results = result_dict["color_results"][0]
+                    right_color_results = result_dict["color_results"][1]
+
                     print("Left", left_color_results[1], left_color_results[2])
                     print("Right", right_color_results[1],
                           right_color_results[2])
@@ -256,5 +265,5 @@ def save_cfg():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    trio.run(main)
     # save_cfg()
