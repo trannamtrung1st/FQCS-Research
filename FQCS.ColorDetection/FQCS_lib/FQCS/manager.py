@@ -3,6 +3,7 @@ from . import detector, helper, fqcs_api, fqcs_constants
 import os
 import asyncio
 import cv2
+import copy
 
 COMPARE_FACTOR = 1.5
 
@@ -24,6 +25,9 @@ class FQCSManager:
         self.__speed = 1
         return
 
+    def get_model(self):
+        return self.__model
+
     def load_sample_images(self):
         self.__sample_left_path = self.get_sample_path(True)
         self.__sample_right_path = self.get_sample_path(False)
@@ -41,6 +45,12 @@ class FQCSManager:
 
     def get_configs(self):
         return self.__configs
+
+    def get_config_by_name(self, name):
+        for cfg in self.__configs:
+            if cfg["name"] == name:
+                return cfg
+        return None
 
     def get_sample_left(self):
         return self.__sample_left
@@ -158,6 +168,7 @@ class FQCSManager:
             elif diff > max_2:
                 max_2 = diff
                 range_2 = (sizes[i], sizes[i + 1])
+        if range_2 is None: range_2 = range_1
         min_1 = np.min(range_1)
         min_2 = np.min(range_2)
         if min_1 < min_2:
@@ -283,6 +294,19 @@ class FQCSManager:
                     sizes[-1].append((dimA, dimB))
         return final_grouped, sizes, check_group_idx, pair, split_left, split_right, image_detect
 
+    def compute_size(self, boxes):
+        per_10px = cam_cfg["length_per_10px"]
+        sizes = []
+        for idx, b in enumerate(boxes):
+            c, rect, dimA, dimB, box, tl, tr, br, bl, minx, maxx, cenx = b
+            if per_10px is not None:
+                lH, lW = helper.calculate_length(
+                    dimA, per_10px), helper.calculate_length(dimB, per_10px)
+                sizes.append((lH, lW))
+            else:
+                sizes.append((dimA, dimB))
+        return sizes
+
     def compare_size(self, cam_cfg, check_size):
         h_diff, w_diff = detector.compare_size(check_size[0], check_size[1],
                                                cam_cfg)
@@ -342,3 +366,7 @@ class FQCSManager:
         left_task = asyncio.create_task(left_coroutine)
         right_task = asyncio.create_task(right_coroutine)
         return left_task, right_task
+
+    def save_config(self, path):
+        ccopy = copy.deepcopy(self.__configs)
+        detector.save_json_cfg(ccopy, path)
