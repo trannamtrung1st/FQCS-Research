@@ -25,6 +25,13 @@ class FQCSManager:
         self.__speed = 1
         return
 
+    def set_main_config(self, name):
+        for cfg in self.__configs:
+            if cfg["name"] == name:
+                cfg["is_main"] = True
+            elif cfg["is_main"]:
+                cfg["is_main"] = False
+
     def get_model(self):
         return self.__model
 

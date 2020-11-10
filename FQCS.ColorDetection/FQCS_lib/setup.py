@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="FQCS",
-    version="1.1.4",
+    version="1.1.5",
     author="FQCS Team",
     author_email="trannamtrung1st@gmail.com",
     description="This is for FQCS Capstone Project",
@@ -20,7 +20,7 @@ setuptools.setup(
     ],
     install_requires=[
         'numpy', 'imutils', 'opencv-python', 'scipy', 'tensorflow',
-        'tensorflow-addons', 'trio'
+        'tensorflow-addons', 'trio', 'qasync'
     ],
     python_requires='>=3.5',
 )
