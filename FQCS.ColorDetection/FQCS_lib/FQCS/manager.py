@@ -32,6 +32,11 @@ class FQCSManager:
             elif cfg["is_main"]:
                 cfg["is_main"] = False
 
+    def get_main_config(self):
+        for cfg in self.__configs:
+            if cfg["is_main"]: return cfg
+        return None
+
     def get_model(self):
         return self.__model
 
