@@ -48,12 +48,22 @@ def count_events(api_url, query_obj=None, headers=None):
         return (None, ex)
 
 
-def submit_event(api_url, defect_type, left_img, right_img, headers=None):
+def submit_event(api_url,
+                 defect_types,
+                 left_img,
+                 right_img,
+                 side_images,
+                 headers=None):
     try:
         data = {}
-        data['defect_type_code'] = defect_type
+        if defect_types is not None:
+            details = []
+            for defect in defect_types:
+                details.append({'defect_type_code': defect})
+            data['details'] = details
         data['left_image'] = left_img
         data['right_image'] = right_img
+        data['side_images'] = side_images
         data['date_format'] = SERVER_ISO_DATE_FORMAT
         utc_now = datetime.datetime.utcnow()
         utc_str = utc_now.strftime(ISO_DATE_FORMAT)

@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-from FQCS_lib.FQCS.manager import FQCSManager
 from FQCS_lib.FQCS import fqcs_constants, fqcs_api, helper
 import os
 import trio
@@ -15,8 +14,14 @@ async def main():
     token = data['access_token']
     print(data)
     headers = fqcs_api.get_common_headers(token)
-    result, data = fqcs_api.count_events(API_URL,
-                                         query_obj={"page": 1},
+    # result, data = fqcs_api.submit_event(
+    #     API_URL, [fqcs_constants.SIZE_MISMATCH, fqcs_constants.STAIN],
+    #     'dirt.jpg',
+    #     'dirt.jpg', ['dirt.jpg', 'dirt.jpg'],
+    #     headers=headers)
+    result, data = fqcs_api.submit_event(API_URL, [],
+                                         'dirt.jpg',
+                                         'dirt.jpg', ['dirt.jpg', 'dirt.jpg'],
                                          headers=headers)
     print(result, data)
     return
