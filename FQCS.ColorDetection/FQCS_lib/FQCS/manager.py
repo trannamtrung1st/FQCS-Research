@@ -12,7 +12,7 @@ class FQCSManager:
     def __init__(self, config_folder=None):
         self.__config_folder = config_folder
         if config_folder is None:
-            configs = {}
+            configs = []
         else:
             configs = detector.load_json_cfg(config_folder)
         self.__configs = configs
@@ -56,7 +56,13 @@ class FQCSManager:
         return os.path.join(self.__config_folder, detector.SAMPLE_RIGHT_FILE)
 
     def get_configs(self):
-        return self.__configs
+        return self.__configs.copy()
+
+    def add_config(self, new_cfg):
+        self.__configs.append(new_cfg)
+
+    def remove_config(self, cfg):
+        self.__configs.remove(cfg)
 
     def get_config_by_name(self, name):
         for cfg in self.__configs:

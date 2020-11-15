@@ -121,7 +121,7 @@ def default_detector_config():
     sim_cfg = default_sim_config()
     detector_config = dict(name="Camera-" + str(datetime.datetime.now()),
                            camera_uri=None,
-                           is_main=True,
+                           is_main=False,
                            is_color_enable=True,
                            is_defect_enable=True,
                            min_width_per=0.1,
