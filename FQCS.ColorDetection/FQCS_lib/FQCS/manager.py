@@ -33,9 +33,9 @@ class FQCSManager:
                 cfg["is_main"] = False
 
     def get_main_config(self):
-        for cfg in self.__configs:
-            if cfg["is_main"]: return cfg
-        return None
+        for i, cfg in enumerate(self.__configs):
+            if cfg["is_main"]: return i, cfg
+        return None, None
 
     def get_model(self):
         return self.__model
@@ -65,10 +65,10 @@ class FQCSManager:
         self.__configs.remove(cfg)
 
     def get_config_by_name(self, name):
-        for cfg in self.__configs:
+        for i, cfg in enumerate(self.__configs):
             if cfg["name"] == name:
-                return cfg
-        return None
+                return i, cfg
+        return None, None
 
     def get_sample_left(self):
         return self.__sample_left

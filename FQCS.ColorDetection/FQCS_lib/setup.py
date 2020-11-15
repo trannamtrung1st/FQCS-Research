@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="FQCS",
-    version="1.1.9",
+    version="1.1.10",
     author="FQCS Team",
     author_email="trannamtrung1st@gmail.com",
     description="This is for FQCS Capstone Project",
