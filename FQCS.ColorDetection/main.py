@@ -27,7 +27,7 @@ async def activate_side_cams(manager: FQCSManager):
         cv2.imshow("Original", resized_image)
 
         image_detect = resized_image.copy()
-        pair, image_detect = manager.detect_pair_side_cam(
+        pair, image_detect, boxes = manager.detect_pair_side_cam(
             main_cfg, boxes, image_detect)
 
         # output

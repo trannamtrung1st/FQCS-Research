@@ -384,7 +384,7 @@ def find_contours_and_box(image: np.ndarray, find_contours_func, d_cfg,
                 and dimB >= min_width and areas[i] >= min_area):
             boxes.append((c, rect, dimA, dimB, box, tl, tr, br, bl, min_x,
                           max_x, center_x))
-    boxes = helper.sort_data_by_loc(boxes, 4)
+    boxes = sorted(boxes, key=lambda x: x[-3])
     return boxes, proc
 
 
@@ -401,7 +401,7 @@ def detect_one_and_size(orig_img: np.ndarray, image: np.ndarray,
     center_x = (min_x + max_x) / 2
     warped = helper.get_warped_box(image, rect, box)
     return (warped, (c, rect, dimA, dimB, box, tl, tr, br, bl, min_x, max_x,
-                     center_x))
+                     center_x), min_x, dimA, dimB)
 
 
 def detect_pair_side_cam(image: np.ndarray, find_contours_func, d_cfg, boxes):
@@ -418,10 +418,10 @@ def detect_pair_side_cam(image: np.ndarray, find_contours_func, d_cfg, boxes):
         min_x = min(cur_min_x, min_x)
         max_x = max(cur_max_x, max_x)
         warped = helper.get_warped_box(image, rect, box)
-        pair.append((warped, box, dimA, dimB))
+        pair.append((warped, box, cur_min_x, dimA, dimB))
 
-    pair = sorted(pair, key=lambda x: x[1][1][0], reverse=True)
-    return pair, image
+    pair = sorted(pair, key=lambda x: x[2])
+    return pair, image, boxes
 
 
 def detect_pair_and_size(image: np.ndarray,
@@ -442,7 +442,7 @@ def detect_pair_and_size(image: np.ndarray,
         min_x = min(cur_min_x, min_x)
         max_x = max(cur_max_x, max_x)
         warped = helper.get_warped_box(image, rect, box)
-        pair.append((warped, box, dimA, dimB))
+        pair.append((warped, box, cur_min_x, dimA, dimB))
 
     center_val = w - max_x - min_x
     is_center = True if (center_val <= stop_condition) else False
@@ -460,8 +460,7 @@ def detect_pair_and_size(image: np.ndarray,
             if (left is not None and right is not None):
                 pair = [left, right]
                 boxes = [left[1], right[1]]
-
-    pair = sorted(pair, key=lambda x: x[1][1][0], reverse=True)
+    pair = sorted(pair, key=lambda x: x[2])
     return pair if len(
         pair) == 2 else None, image, split_left, split_right, boxes
 

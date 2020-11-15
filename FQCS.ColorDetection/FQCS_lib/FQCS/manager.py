@@ -17,12 +17,10 @@ class FQCSManager:
             configs = detector.load_json_cfg(config_folder)
         self.__configs = configs
         self.__model = None
-        self.__sample_area = None
-        self.__sample_left = None
-        self.__sample_right = None
         self.__last_group_count = 0
         self.__last_check_min_x = None
         self.__speed = 1
+        self.load_sample_images()
         return
 
     def set_main_config(self, name):
@@ -41,6 +39,13 @@ class FQCSManager:
         return self.__model
 
     def load_sample_images(self):
+        self.__sample_left_path = None
+        self.__sample_right_path = None
+        self.__sample_left = None
+        self.__sample_right = None
+        self.__sample_area = None
+        if self.__config_folder is None:
+            return
         self.__sample_left_path = self.get_sample_path(True)
         self.__sample_right_path = self.get_sample_path(False)
         if os.path.exists(self.__sample_left_path):
@@ -219,7 +224,7 @@ class FQCSManager:
             training=False,
             yolo_max_boxes=err_cfg["yolo_max_boxes"],
             yolo_iou_threshold=err_cfg["yolo_iou_threshold"],
-            weights=err_cfg["weights"],
+            weights=weights,
             yolo_score_threshold=err_cfg["yolo_score_threshold"])
         self.__model = model
 
@@ -272,9 +277,9 @@ class FQCSManager:
 
     def detect_pair_side_cam(self, cam_cfg, boxes, image_detect):
         find_contours_func = self.get_find_cnt_func(cam_cfg)
-        pair, image_detect = detector.detect_pair_side_cam(
+        pair, image_detect, boxes = detector.detect_pair_side_cam(
             image_detect, find_contours_func, cam_cfg["d_cfg"], boxes)
-        return pair, image_detect
+        return pair, image_detect, boxes
 
     def detect_groups_and_checked_pair(self, cam_cfg, boxes, resized_image):
         final_grouped, _, _, check_group_idx = self.group_pairs(boxes)
@@ -386,3 +391,5 @@ class FQCSManager:
     def save_config(self, path):
         ccopy = copy.deepcopy(self.__configs)
         detector.save_json_cfg(ccopy, path)
+        self.__config_folder = path
+        self.load_sample_images()

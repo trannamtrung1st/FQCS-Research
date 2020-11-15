@@ -186,11 +186,6 @@ def sort_contours_area(cnts):
     return (cnts, areas)
 
 
-def sort_data_by_loc(data, idx):
-    data = sorted(data, key=lambda x: np.min(x[idx][:, 0]))
-    return data
-
-
 def fill_contours(image, cnts):
     h, w, _ = image.shape
     mask = np.zeros((h, w), dtype="ubyte")
