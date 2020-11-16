@@ -97,7 +97,7 @@ def default_color_config():
                 beta_l=-150,
                 sat_adj=2,
                 supp_thresh=10,
-                amplify_thresh=(None, None, None),
+                amplify_thresh=(1000, 1000, 1000),
                 amplify_rate=20,
                 max_diff=0.2)
 
