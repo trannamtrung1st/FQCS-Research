@@ -378,12 +378,13 @@ class FQCSManager:
         return helper.return_result(err_result, result_info)
 
     async def compare_colors(self, cam_cfg, pre_left, pre_right,
-                             pre_sample_left, pre_sample_right, result_info):
+                             pre_sample_left, pre_sample_right, apply_amp,
+                             result_info):
         c_cfg = cam_cfg["color_cfg"]
         left_coroutine, right_coroutine = detector.detect_color_difference(
             pre_left, pre_right, pre_sample_left, pre_sample_right,
             c_cfg['amplify_thresh'], c_cfg['supp_thresh'],
-            c_cfg['amplify_rate'], c_cfg['max_diff'])
+            c_cfg['amplify_rate'], c_cfg['max_diff'], apply_amp)
         left_result = await left_coroutine
         right_result = await right_coroutine
         return helper.return_result((left_result, right_result), result_info)

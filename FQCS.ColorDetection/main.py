@@ -170,7 +170,7 @@ async def main():
                             nursery.start_soon(manager.compare_colors,
                                                main_cfg, pre_left, pre_right,
                                                pre_sample_left,
-                                               pre_sample_right,
+                                               pre_sample_right, True,
                                                (result_dict, "color_results"))
 
                         if main_cfg["is_defect_enable"]:
