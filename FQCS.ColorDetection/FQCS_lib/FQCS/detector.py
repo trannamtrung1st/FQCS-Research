@@ -7,6 +7,7 @@ from .tf2_yolov4.model import YOLOv4
 import json
 import os
 import datetime
+from . import fqcs_constants
 
 CONFIG_FILE = "config.json"
 SAMPLE_LEFT_FILE = "sample_left.jpg"
@@ -65,7 +66,7 @@ def default_err_config():
                 yolo_iou_threshold=0.5,
                 weights="yolov4.h5",
                 yolo_score_threshold=0.3,
-                classes=['dirt'])
+                classes=[fqcs_constants.STAIN, fqcs_constants.EXCESS_GLUE])
 
 
 def default_d_config():
