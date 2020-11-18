@@ -38,6 +38,11 @@ class FQCSManager:
     def get_model(self):
         return self.__model
 
+    def reset_samples(self):
+        self.__sample_left = None
+        self.__sample_right = None
+        self.__sample_area = None
+
     def load_sample_images(self):
         self.__sample_left_path = None
         self.__sample_right_path = None
