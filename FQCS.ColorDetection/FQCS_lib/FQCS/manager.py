@@ -354,11 +354,9 @@ class FQCSManager:
 
     def preprocess_images(self, cam_cfg, left_img, right_img):
         # start
-        pre_sample_left = self.preprocess(cam_cfg, self.__sample_left, True)
-        pre_sample_right = self.preprocess(cam_cfg, self.__sample_right, False)
         pre_left = self.preprocess(cam_cfg, left_img, True)
         pre_right = self.preprocess(cam_cfg, right_img, False)
-        return pre_left, pre_right, pre_sample_left, pre_sample_right
+        return pre_left, pre_right
 
     async def detect_asym(self, cam_cfg, pre_left, pre_right, pre_sample_left,
                           pre_sample_right, result_info):

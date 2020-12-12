@@ -149,7 +149,11 @@ async def main():
                 cv2.imwrite(sample_left_path, left)
                 cv2.imwrite(sample_right_path, right)
             else:
-                pre_left, pre_right, pre_sample_left, pre_sample_right = manager.preprocess_images(
+                sample_left, sample_right = manager.get_sample_left(
+                ), manager.get_sample_right()
+                pre_sample_left, pre_sample_right = manager.preprocess_images(
+                    main_cfg, sample_left, sample_right)
+                pre_left, pre_right = manager.preprocess_images(
                     main_cfg, left, right)
                 images = [left, right]
 
