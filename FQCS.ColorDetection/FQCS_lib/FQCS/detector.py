@@ -61,7 +61,7 @@ def get_find_contours_func_by_method(m_name):
 def default_err_config():
     return dict(inp_shape=(320, 160, 3),
                 img_size=(160, 320),
-                num_classes=1,
+                num_classes=2,
                 yolo_max_boxes=10,
                 yolo_iou_threshold=0.5,
                 weights="yolov4.h5",
